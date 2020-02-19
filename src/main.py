@@ -1,6 +1,7 @@
 import numpy as np
 import math
 
+# uses the Pearson coefficient to calculate the similarity between 2 users
 def sim(u1, u2):
     # database call - given 2 userId's return the list of itemId's they've both rated
     sharedItems = [1, 4, 5]
@@ -14,9 +15,7 @@ def sim(u1, u2):
     u2Avg = 4.75
 
     # accumulator for 3 parts of sim equation
-    a = 0
-    b = 0
-    c = 0
+    a, b, c = 0, 0, 0
 
     for i in range(len(sharedItems)):
         ratingU1 = u1Ratings[i] - u1Avg
@@ -32,7 +31,8 @@ def sim(u1, u2):
     b = math.sqrt(b)
     c = math.sqrt(c)
 
-    result = a / (b * c)
+    # round the equation output to 3 decimal places
+    result = round(a / (b * c), 3)
 
     return result
 
@@ -64,7 +64,5 @@ def getPrediciton(userId, itemId):
     return "Not rated"
 
 
-# pred = getPrediciton(1, 3)
-# print(pred)
-
-print(sim(0,0))
+pred = getPrediciton(1, 3)
+print(pred)
