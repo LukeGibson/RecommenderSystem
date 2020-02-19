@@ -1,5 +1,7 @@
 import numpy as np
 import math
+import sqlite3
+
 
 # uses the Pearson coefficient to calculate the similarity between 2 users
 def sim(u1, u2):
@@ -38,15 +40,19 @@ def sim(u1, u2):
 
 # cur object is cursor for databases
 def getPrediciton(userId, itemId, cur):
-    # userRatings[0] = item, userRatings[1] = score
+    # userRatings[0] = item, userRatings[1] = scores
     ratingsDict = {}
+
     # Database call - given a userId get a list of (itemId, ratings) they've made
     criteria = (userId,)
     index = 0
     for row in cur.execute('SELECT itemID, rating FROM ratings WHERE userID = ?', criteria):
         ratingsDict.update({row[0]: row[1]})
     # return ratingsDict
-    userItemRating = [(1, 4.5), (2, 1), (5, 2.5)]
+
+    userItemRating = ratingsDict.items()
+
+    print(userItemRating)
 
     userItems = [i[0] for i in userItemRating]
     userRatings = [i[1] for i in userItemRating]
@@ -70,9 +76,8 @@ def getPrediciton(userId, itemId, cur):
 
     return "Not rated"
 
-import sqlite3
+
 connection = sqlite3.connect('../ratings.db')
 cur = connection.cursor()
-# for x,y in getPrediciton(1, 3, cur).items():
-#     print(x, y)
-# # print(pred)
+
+print(getPrediciton(1, 5, cur))
