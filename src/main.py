@@ -49,13 +49,13 @@ def getPrediciton(userId, itemId, cur):
     for row in cur.execute('SELECT itemID, rating FROM ratings WHERE userID = ?', criteria):
         ratingsDict.update({row[0]: row[1]})
     # return ratingsDict
-
     userItemRating = ratingsDict.items()
-
-    print(userItemRating)
+    # print(userItemRating)
 
     userItems = [i[0] for i in userItemRating]
+    print(userItems)
     userRatings = [i[1] for i in userItemRating]
+    print(userRatings)
 
     # check user hasn't already reated item
     for item, rating in userItemRating:
@@ -72,12 +72,11 @@ def getPrediciton(userId, itemId, cur):
         simScore = sim(userId, user)
         simScores.append((user, simScore))
 
-    print(simScores)
+    # print(simScores)
 
     return "Not rated"
 
 
 connection = sqlite3.connect('../ratings.db')
 cur = connection.cursor()
-
-print(getPrediciton(1, 5, cur))
+print(getPrediciton(1,5,cur))
