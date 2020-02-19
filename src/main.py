@@ -1,7 +1,40 @@
 import numpy as np
+import math
 
+# uses the Pearson coefficient to calculate the similarity between 2 users
 def sim(u1, u2):
-    return 0
+    # database call - given 2 userId's return the list of itemId's they've both rated
+    sharedItems = [1, 4, 5]
+
+    # database call - given a userId and the sharedItems return the list of ratings
+    u1Ratings = [8, 2, 7]
+    u2Ratings = [2, 7, 5]
+
+    # database call - given userId get a users average rating (rounded to 2dp)
+    u1Avg = 5.7
+    u2Avg = 4.75
+
+    # accumulator for 3 parts of sim equation
+    a, b, c = 0, 0, 0
+
+    for i in range(len(sharedItems)):
+        ratingU1 = u1Ratings[i] - u1Avg
+        ratingU2 = u2Ratings[i] - u2Avg
+
+        ratingU1Sq = ratingU1 * ratingU1
+        ratingU2Sq = ratingU2 * ratingU2
+
+        a += ratingU1 * ratingU2
+        b += ratingU1Sq
+        c += ratingU2Sq
+
+    b = math.sqrt(b)
+    c = math.sqrt(c)
+
+    # round the equation output to 3 decimal places
+    result = round(a / (b * c), 3)
+
+    return result
 
 # cur object is cursor for databases
 def getPrediciton(userId, itemId, cur):
