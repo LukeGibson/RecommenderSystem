@@ -10,7 +10,7 @@ cur = connection.cursor()
 # Create the table
 cur.execute("CREATE TABLE ratings (userID INT, itemID INT, rating FLOAT, time INT);")
 
-with open('Data/comp3208-train-small.csv') as input:
+with open('../Data/comp3208-train-small.csv') as input:
     lines = csv.DictReader(input, fieldnames=['userID', 'itemID', 'rating', 'time'])
     data_entries = [(i['userID'], i['itemID'], i['rating'], i['time']) for i in lines]
 
