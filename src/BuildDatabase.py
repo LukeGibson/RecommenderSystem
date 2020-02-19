@@ -4,13 +4,18 @@
 # Create and set-up database
 import sqlite3, csv
 import time
+
+databasePath = 'Data/comp3208-train-small.csv'
+databaseFileName = 'ratings.db'
+databaseTableName = 'ratings'
+
 start_time = time.clock()
 connection = sqlite3.connect('ratings.db')
 cur = connection.cursor()
 # Create the table
-cur.execute("CREATE TABLE ratings (userID INT, itemID INT, rating FLOAT, time INT);")
+cur.execute("CREATE TABLE ? (userID INT, itemID INT, rating FLOAT, time INT);", databaseTableName)
 
-with open('Data/comp3208-train-small.csv') as input:
+with open(databasePath) as input:
     lines = csv.DictReader(input, fieldnames=['userID', 'itemID', 'rating', 'time'])
     data_entries = [(i['userID'], i['itemID'], i['rating'], i['time']) for i in lines]
 
