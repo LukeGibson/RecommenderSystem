@@ -1,0 +1,11 @@
+Method 1:
+    - Create a feature space of dimensionality equal to the number of unique items 'm' in the training set.
+    - For each of the 'n' users create a vector of size 'm' where position i of vector is equal to the rating the user gave to item i.
+    - Not all users will have rating for all items need to set unrated items to some number...
+        - Zero
+        - 2.5 (middle)
+        - mean of their given ratings
+
+
+Method 2:
+    - 
