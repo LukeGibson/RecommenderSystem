@@ -1,7 +1,40 @@
 import numpy as np
+import math
 
 def sim(u1, u2):
-    return 0
+    # database call - given 2 userId's return the list of itemId's they've both rated
+    sharedItems = [1, 4, 5]
+
+    # database call - given a userId and the sharedItems return the list of ratings
+    u1Ratings = [8, 2, 7]
+    u2Ratings = [2, 7, 5]
+
+    # database call - given userId get a users average rating (rounded to 2dp)
+    u1Avg = 5.7
+    u2Avg = 4.75
+
+    # accumulator for 3 parts of sim equation
+    a = 0
+    b = 0
+    c = 0
+
+    for i in range(len(sharedItems)):
+        ratingU1 = u1Ratings[i] - u1Avg
+        ratingU2 = u2Ratings[i] - u2Avg
+
+        ratingU1Sq = ratingU1 * ratingU1
+        ratingU2Sq = ratingU2 * ratingU2
+
+        a += ratingU1 * ratingU2
+        b += ratingU1Sq
+        c += ratingU2Sq
+
+    b = math.sqrt(b)
+    c = math.sqrt(c)
+
+    result = a / (b * c)
+
+    return result
 
 
 def getPrediciton(userId, itemId):
@@ -31,5 +64,7 @@ def getPrediciton(userId, itemId):
     return "Not rated"
 
 
-pred = getPrediciton(1, 3)
-print(pred)
+# pred = getPrediciton(1, 3)
+# print(pred)
+
+print(sim(0,0))
