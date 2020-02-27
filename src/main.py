@@ -1,5 +1,7 @@
 import numpy as np
 import math
+import sqlite3
+
 
 # uses the Pearson coefficient to calculate the similarity between 2 users
 def sim(u1, u2):
@@ -31,15 +33,41 @@ def sim(u1, u2):
     b = math.sqrt(b)
     c = math.sqrt(c)
 
-    # round the equation output to 3 decimal places
-    result = round(a / (b * c), 3)
+    # round the equation output to 2 decimal places
+    result = round(a / (b * c), 2)
 
     return result
 
+
+# calculate the predicted rating for user on item given a neighbourhood of similar users and their simScores
+def pred(userId, itemID, neighbours):
+    # database call - given userId get a users average rating (rounded to 2dp)
+    u1Avg = 5.7
+
+    a = 0
+    b = 0
+
+    for u2, u2Sim in neighbours:
+        # database call - given userId get a users average rating (rounded to 2dp)
+        u2Avg = 3.4
+        # database call - given a userId and an itemId get the corresponding rating
+        u2Item = 4.5
+        
+        # check u2 has rated that item, if so accumulate the scores
+        if u2Item != None:
+            a += u2Sim * (u2Item - u2Avg)
+            b += u2Sim
+    
+    # round the equation output to 2 decimal places
+    result = round(u1Avg + (a / b), 2)
+
+
+
 # cur object is cursor for databases
 def getPrediciton(userId, itemId, cur):
-    # userRatings[0] = item, userRatings[1] = score
+    # userRatings[0] = item, userRatings[1] = scores
     ratingsDict = {}
+ 
     # Database call - given a userId get a list of (itemId, ratings) they've made
     criteria = (userId,)
     index = 0
@@ -65,15 +93,26 @@ def getPrediciton(userId, itemId, cur):
     # Initialise a list to store simScores
     simScores = []
 
+    # calculate users similarities
     for user in userSubset:
         simScore = sim(userId, user)
         simScores.append((user, simScore))
 
-    # print(simScores)
+    # select the neighbourhood topN most similar users from the userSubset
+    neighbours = []
+    topN = 3
 
-    return "Not rated"
+    userIndexs = np.argsort(simScores)[-topN:]
 
-import sqlite3
-connection = sqlite3.connect('../ratings.db')
-cur = connection.cursor()
-getPrediciton(1,5,cur)
+    for index in userIndexs:
+        neighbours.append((userSubset[index], simScores[index]))
+
+    # calculate the prediction
+    predRating = pred(userId, itemId, neighbours)
+
+    return "Predicted rating:" + str(predRating)
+
+
+# connection = sqlite3.connect('../ratings.db')
+# cur = connection.cursor()
+# print(getPrediciton(1,5,cur))

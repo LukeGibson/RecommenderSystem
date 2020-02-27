@@ -13,7 +13,7 @@ start_time = time.clock()
 connection = sqlite3.connect('ratings.db')
 cur = connection.cursor()
 # Create the table
-cur.execute("CREATE TABLE ? (userID INT, itemID INT, rating FLOAT, time INT);", databaseTableName)
+cur.execute("CREATE TABLE ratings (userID INT, itemID INT, rating FLOAT, time INT);")
 
 with open(databasePath) as input:
     lines = csv.DictReader(input, fieldnames=['userID', 'itemID', 'rating', 'time'])
