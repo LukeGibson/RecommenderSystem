@@ -1,7 +1,6 @@
 import numpy as np
 import math
-import sqlite3
-import os
+from collections import Counter
 
 
 # uses the Pearson coefficient to calculate the similarity between 2 users
@@ -123,18 +122,20 @@ def get_prediction(user_id, item_id, cursor):
             return user_id, item_id, rating
 
     # database call - given userItems get a list of userId's who also have a rating for at least 1 of the items
-    user_list = []
-    for i in range(len(user_items)):
-        criteria = (user_items[i],)
-        for row in cursor.execute('SELECT userID FROM ratings WHERE itemID = ?', criteria):
-            user_list.append(row[0])
-    user_subset = list(dict.fromkeys(user_list))
+    # userID and all the items theyve rated, then look to see how of these are one of the items our user has rated
+    thresh = 5 if len(user_items) > 5 else len(user_items)
+    user_item_count = {}
+    for row in cursor.execute(f"SELECT userID FROM ratings WHERE itemID IN ({','.join(map(str, user_items))}) "):
+        user_item_count[row[0]] = user_item_count.get(row[0], 0) + 1
 
-    user_subset.remove(user_id)
-    user_subset = user_subset[:50]
+    print(len(user_item_count))
+    user_subset = []
+    for x, y in user_item_count.items():
 
-    print("Subset of users that share a rating:", user_subset)
-    
+        if y > thresh:
+            user_subset.append(x)
+    print(len(user_subset))
+
     # Initialise a list to store simScores
     sim_scores = []
 
