@@ -7,8 +7,6 @@ local_dir = os.path.dirname(__file__)
 db_path = os.path.join(local_dir, '../ratings.db')
 connection = sqlite3.connect(db_path)
 cur = connection.cursor()
-
-
 # uses the Pearson coefficient to calculate the similarity between 2 users
 def sim(u1, u2, cursor):
     # given 2 userId's return the list of itemId's they've both rated
@@ -40,11 +38,10 @@ def sim(u1, u2, cursor):
     # given userId get a users average rating (rounded to 2dp)
     criteria = (u1,)
     for row in cursor.execute('SELECT AVG(rating) FROM ratings WHERE userID = ?', criteria):
-        u1_avg = round(row[0], 2)
+        u1_avg = row[0]
     criteria = (u2,)
     for row in cursor.execute('SELECT AVG(rating) FROM ratings WHERE userID = ?', criteria):
-        u2_avg = round(row[0], 2)
-
+        u2_avg = row[0]
 
     # accumulator for 3 parts of sim equation
     a, b, c = 0, 0, 0
@@ -64,7 +61,7 @@ def sim(u1, u2, cursor):
     c = math.sqrt(c)
 
     # round the equation output to 3 decimal places
-    result = round(a / (b * c), 3)
+    result = a / (b * c)
 
     return result
 
@@ -74,7 +71,7 @@ def pred(user_id, item_id, neighbours, cursor):
     # database call - given userId get a users average rating (rounded to 2dp)
     criteria = (user_id,)
     for row in cursor.execute('SELECT AVG(rating) FROM ratings WHERE userID = ?', criteria):
-        u1_avg = round(row[0], 2)
+        u1_avg = row[0]
 
     a = 0
     b = 0
@@ -83,22 +80,23 @@ def pred(user_id, item_id, neighbours, cursor):
         # database call - given userId get a users average rating (rounded to 2dp)
         criteria = (u2,)
         for row in cursor.execute('SELECT AVG(rating) FROM ratings WHERE userID = ?', criteria):
-            u2_avg = round(row[0], 2)
+            u2_avg = row[0]
 
         # database call - given a userId and an itemId get the corresponding rating
         criteria = (u2, item_id)
         db_call = cursor.execute('SELECT rating FROM ratings WHERE userID = ? AND itemID = ?', criteria)
         for row in db_call:
             u2_item = row[0]
-        
+
         # check u2 has rated that item, if so accumulate the scores
-        if len(db_call) > 0:
+        if db_call:
             a += u2_sim * (u2_item - u2_avg)
             b += u2_sim
-    
-    # round the equation output to 2 decimal places
-    result = round(u1_avg + (a / b), 2)
 
+    # round the equation output to 2 decimal places
+    result = u1_avg + (a / b)
+
+    return result
 
 
 # cur object is cursor for databases
@@ -112,9 +110,7 @@ def get_prediction(user_id, item_id, cursor):
 
     user_item_rating = ratings_dict.items()
     user_items = [i[0] for i in user_item_rating]
-    print(user_items)
     user_ratings = [i[1] for i in user_item_rating]
-    print(user_ratings)
 
     # check user hasn't already rated item
     for item, rating in user_item_rating:
@@ -129,7 +125,7 @@ def get_prediction(user_id, item_id, cursor):
             user_list.append(row[0])
     user_subset = list(dict.fromkeys(user_list))
 
-    # user_subset.remove(user_id)
+    user_subset.remove(user_id)
 
     # Initialise a list to store simScores
     sim_scores = []
@@ -140,17 +136,19 @@ def get_prediction(user_id, item_id, cursor):
 
     # select the neighbourhood topN most similar users from the userSubset
     neighbours = []
-    topN = 3
+    topN = 2
 
-    user_indexs = np.argsort(sim_scores)[-topN:]
+    # orders the sim_scores in accending order - then takes the sim_score indexes of the last N elements: N most similar users.
+    user_indexs = np.argsort([score[1] for score in sim_scores])[-topN:]
 
     for index in user_indexs:
-        neighbours.append((user_subset[index], sim_scores[index]))
+        neighbours.append(sim_scores[index])
 
     # calculate the prediction
     predRating = pred(user_id, item_id, neighbours, cursor)
 
-    return "Predicted rating of user ", user_id, "for item", item_id, ":", predRating
+    return user_id, item_id, predRating
 
 
-# Tests
+u, i, r = get_prediction(1, 3, cur)
+print("user", u, "for item", i, "has predicted rating", r)
