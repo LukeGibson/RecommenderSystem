@@ -124,7 +124,7 @@ def get_prediction(user_id, item_id, cursor):
 
     # database call - given userItems get a list of userId's who also have a rating for at least 1 of the items
     user_list = []
-    for i in range(1):
+    for i in range(len(user_items)):
         criteria = (user_items[i],)
         for row in cursor.execute('SELECT userID FROM ratings WHERE itemID = ?', criteria):
             user_list.append(row[0])
