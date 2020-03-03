@@ -124,16 +124,17 @@ def get_prediction(user_id, item_id, cursor):
 
     # database call - given userItems get a list of userId's who also have a rating for at least 1 of the items
     user_list = []
-    for i in range(len(user_items)):
+    for i in range(1):
         criteria = (user_items[i],)
         for row in cursor.execute('SELECT userID FROM ratings WHERE itemID = ?', criteria):
             user_list.append(row[0])
     user_subset = list(dict.fromkeys(user_list))
 
     user_subset.remove(user_id)
+    user_subset = user_subset[:50]
 
     print("Subset of users that share a rating:", user_subset)
-
+    
     # Initialise a list to store simScores
     sim_scores = []
 
