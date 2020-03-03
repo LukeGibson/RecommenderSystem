@@ -6,7 +6,7 @@ import sqlite3, csv
 import time
 import os
 
-databasePath = 'Data/comp3208-train-small.csv'
+databasePath = 'Data/example-train.csv'
 databaseFileName = 'ratings.db'
 databaseTableName = 'ratings'
 

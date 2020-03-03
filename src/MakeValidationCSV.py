@@ -2,7 +2,7 @@
 # these can then be made into databases later on
 import pandas as pd
 
-inputPath = "../Data/comp3208-train-small.csv"
+inputPath = "../Data/example-train.csv"
 size = "small"
 df = pd.read_csv(inputPath, names=['userId', 'itemId', 'rating', 'time'])
 
