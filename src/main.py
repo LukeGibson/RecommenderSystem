@@ -62,7 +62,6 @@ def pred(userId, itemID, neighbours):
     result = round(u1Avg + (a / b), 2)
 
 
-
 # cur object is cursor for databases
 def getPrediciton(userId, itemId, cur):
     # userRatings[0] = item, userRatings[1] = scores
