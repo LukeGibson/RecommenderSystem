@@ -8,4 +8,8 @@ Method 1:
 
 
 Method 2:
-    - 
+    - Get a subset of users who have at least one shared rating to currentUser
+    - Calculate the similarity score for each user in this subset using the sim(u1, u2) function
+    - Select neighbourhood as the N users with the highest similarity score
+    - For each item not rated by currentUser calculate its predicted rating using the pred(currentUser, item) function
+    - Return the M items with the highest predicted rating as the recommendations
