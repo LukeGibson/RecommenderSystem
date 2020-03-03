@@ -2,7 +2,8 @@
 # http://www.grroups.com/blog/sqlite-working-with-large-data-sets-in-python-effectively
 
 # Create and set-up database
-import sqlite3, csv
+import sqlite3
+import csv
 import time
 
 databasePath = 'Data/comp3208-train-small.csv'
