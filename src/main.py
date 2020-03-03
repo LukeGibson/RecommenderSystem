@@ -2,6 +2,7 @@ import numpy as np
 import math
 import sqlite3
 import os
+
 local_dir = os.path.dirname(__file__)
 db_path = os.path.join(local_dir, '../ratings.db')
 connection = sqlite3.connect(db_path)
@@ -23,23 +24,27 @@ def sim(u1, u2, cursor):
 
     # given a userId and the sharedItems return the list of ratings
     user_id = u1
-    ratings = []
+    u1_ratings = []
     for i in range(len(shared_items)):
         criteria = (user_id, shared_items[i],)
         for row in cursor.execute('SELECT rating FROM ratings WHERE userID = ? AND itemID = ?', criteria):
-            ratings.append(row[0])
-    u1_ratings = ratings
-    u2_ratings = [2, 7, 5]
+            u1_ratings.append(row[0])
+
+    user_id = u2
+    u2_ratings = []
+    for i in range(len(shared_items)):
+        criteria = (user_id, shared_items[i],)
+        for row in cursor.execute('SELECT rating FROM ratings WHERE userID = ? AND itemID = ?', criteria):
+            u2_ratings.append(row[0])
 
     # given userId get a users average rating (rounded to 2dp)
-    user_id = 1
-    criteria = (user_id,)
-    rating = 0
+    criteria = (u1,)
     for row in cursor.execute('SELECT AVG(rating) FROM ratings WHERE userID = ?', criteria):
-        rating = round(row[0], 2)
-    # return ratingsDict
-    u1_avg = rating
-    u2_avg = 4.75
+        u1_avg = round(row[0], 2)
+    criteria = (u2,)
+    for row in cursor.execute('SELECT AVG(rating) FROM ratings WHERE userID = ?', criteria):
+        u2_avg = round(row[0], 2)
+
 
     # accumulator for 3 parts of sim equation
     a, b, c = 0, 0, 0
@@ -64,6 +69,38 @@ def sim(u1, u2, cursor):
     return result
 
 
+# calculate the predicted rating for user on item given a neighbourhood of similar users and their simScores
+def pred(user_id, item_id, neighbours, cursor):
+    # database call - given userId get a users average rating (rounded to 2dp)
+    criteria = (user_id,)
+    for row in cursor.execute('SELECT AVG(rating) FROM ratings WHERE userID = ?', criteria):
+        u1_avg = round(row[0], 2)
+
+    a = 0
+    b = 0
+
+    for u2, u2_sim in neighbours:
+        # database call - given userId get a users average rating (rounded to 2dp)
+        criteria = (u2,)
+        for row in cursor.execute('SELECT AVG(rating) FROM ratings WHERE userID = ?', criteria):
+            u2_avg = round(row[0], 2)
+
+        # database call - given a userId and an itemId get the corresponding rating
+        criteria = (u2, item_id)
+        db_call = cursor.execute('SELECT rating FROM ratings WHERE userID = ? AND itemID = ?', criteria)
+        for row in db_call:
+            u2_item = row[0]
+        
+        # check u2 has rated that item, if so accumulate the scores
+        if len(db_call) > 0:
+            a += u2_sim * (u2_item - u2_avg)
+            b += u2_sim
+    
+    # round the equation output to 2 decimal places
+    result = round(u1_avg + (a / b), 2)
+
+
+
 # cur object is cursor for databases
 def get_prediction(user_id, item_id, cursor):
     # userRatings[0] = item, userRatings[1] = score
@@ -85,21 +122,35 @@ def get_prediction(user_id, item_id, cursor):
             return "Already rated: " + str(rating)
 
     # database call - given userItems get a list of userId's who also have a rating for at least 1 of the items
-    item_list = [12793, 113, 1876]
     user_list = []
-    for i in range(len(item_list)):
-        criteria = (item_list[i],)
+    for i in range(len(user_items)):
+        criteria = (user_items[i],)
         for row in cursor.execute('SELECT userID FROM ratings WHERE itemID = ?', criteria):
             user_list.append(row[0])
     user_subset = list(dict.fromkeys(user_list))
 
+    # user_subset.remove(user_id)
+
     # Initialise a list to store simScores
     sim_scores = []
 
-    for user in user_subset:
-        sim_score = sim(user_id, user, cursor)
-        sim_scores.append((user, sim_score))
+    for compare_user_id in user_subset:
+        sim_score = sim(user_id, compare_user_id, cursor)
+        sim_scores.append((compare_user_id, sim_score))
 
-    # print(sim_scores)
+    # select the neighbourhood topN most similar users from the userSubset
+    neighbours = []
+    topN = 3
 
-    return "Not rated"
+    user_indexs = np.argsort(sim_scores)[-topN:]
+
+    for index in user_indexs:
+        neighbours.append((user_subset[index], sim_scores[index]))
+
+    # calculate the prediction
+    predRating = pred(user_id, item_id, neighbours, cursor)
+
+    return "Predicted rating of user ", user_id, "for item", item_id, ":", predRating
+
+
+# Tests
