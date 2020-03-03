@@ -4,13 +4,17 @@
 # Create and set-up database
 import sqlite3, csv
 import time
+import os
 
 databasePath = 'Data/comp3208-train-small.csv'
 databaseFileName = 'ratings.db'
 databaseTableName = 'ratings'
 
 start_time = time.clock()
-connection = sqlite3.connect('ratings.db')
+
+local_dir = os.path.dirname(__file__)
+db_path = os.path.join(local_dir, '../ratings.db')
+connection = sqlite3.connect(db_path)
 cur = connection.cursor()
 # Create the table
 cur.execute("CREATE TABLE ratings (userID INT, itemID INT, rating FLOAT, time INT);")
