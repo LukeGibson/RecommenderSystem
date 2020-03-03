@@ -3,6 +3,7 @@
 # start_time = time.clock()
 import sqlite3
 import os
+
 local_dir = os.path.dirname(__file__)
 db_path = os.path.join(local_dir, '../ratings.db')
 connection = sqlite3.connect(db_path)
