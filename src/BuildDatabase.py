@@ -7,7 +7,7 @@ import csv
 import time
 import os
 
-databasePath = 'Data/example-train.csv'
+databasePath = 'Data/comp3208-train-small.csv'
 databaseFileName = 'ratings.db'
 databaseTableName = 'ratings'
 

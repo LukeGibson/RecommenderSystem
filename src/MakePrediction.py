@@ -81,18 +81,21 @@ def pred(user_id, item_id, neighbours, cursor):
             u2_avg = row[0]
 
         # database call - given a userId and an itemId get the corresponding rating
+        u2_item = None
         criteria = (u2, item_id)
         db_call = cursor.execute('SELECT rating FROM ratings WHERE userID = ? AND itemID = ?', criteria)
         for row in db_call:
             u2_item = row[0]
         
         # check u2 has rated that item, if so accumulate the scores
-        if db_call:
+        if u2_item != None:
             a += u2_sim * (u2_item - u2_avg)
             b += u2_sim
     
-    # round the equation output to 2 decimal places
-    result = u1_avg + (a / b)
+    if b == 0:
+        result = u1_avg
+    else:
+        result = u1_avg + (a / b)    
 
     return result
 
@@ -110,10 +113,14 @@ def get_prediction(user_id, item_id, cursor):
     user_items = [i[0] for i in user_item_rating]
     user_ratings = [i[1] for i in user_item_rating]
 
+    print("Items rated by user:", user_items)
+    print("Ratings of user:", user_ratings)
+
     # check user hasn't already rated item
     for item, rating in user_item_rating:
         if item_id == item:
-            return "Already rated: " + str(rating)
+            print("User already rated this item!")
+            return user_id, item_id, rating
 
     # database call - given userItems get a list of userId's who also have a rating for at least 1 of the items
     user_list = []
@@ -125,22 +132,30 @@ def get_prediction(user_id, item_id, cursor):
 
     user_subset.remove(user_id)
 
+    print("Subset of users that share a rating:", user_subset)
+
     # Initialise a list to store simScores
     sim_scores = []
 
     for compare_user_id in user_subset:
         sim_score = sim(user_id, compare_user_id, cursor)
         sim_scores.append((compare_user_id, sim_score))
+    
+    print("Similarity scores between user and user subset:", sim_scores)
 
     # select the neighbourhood topN most similar users from the userSubset
     neighbours = []
-    topN = 2
+    topN = int(len(sim_scores) / 2)
+
+    print("topN:", topN)
 
     # orders the sim_scores in accending order - then takes the sim_score indexes of the last N elements: N most similar users.
     user_indexs = np.argsort([score[1] for score in sim_scores])[-topN:]
 
     for index in user_indexs:
         neighbours.append(sim_scores[index])
+    
+    print("Users most similar neighbours:", neighbours)
 
     # calculate the prediction
     predRating = pred(user_id, item_id, neighbours, cursor)
