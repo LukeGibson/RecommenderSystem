@@ -3,12 +3,6 @@ import math
 import sqlite3
 import os
 
-local_dir = os.path.dirname(__file__)
-db_path = os.path.join(local_dir, '../ratings.db')
-connection = sqlite3.connect(db_path)
-
-cur = connection.cursor()
-
 
 # uses the Pearson coefficient to calculate the similarity between 2 users
 def sim(u1, u2, cursor):
