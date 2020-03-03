@@ -6,21 +6,18 @@ import sqlite3
 import csv
 import time
 import os
-
-databasePath = 'Data/comp3208-train-small.csv'
+local_dir = os.path.dirname(__file__)
+csv_path = os.path.join(local_dir, '../Data/comp3208-train-small.csv')
 databaseFileName = 'ratings.db'
 databaseTableName = 'ratings'
 
 start_time = time.clock()
-
-local_dir = os.path.dirname(__file__)
-db_path = os.path.join(local_dir, '../ratings.db')
-connection = sqlite3.connect(db_path)
+connection = sqlite3.connect('ratings.db')
 cur = connection.cursor()
 # Create the table
 cur.execute("CREATE TABLE ratings (userID INT, itemID INT, rating FLOAT, time INT);")
 
-with open(databasePath) as input:
+with open(csv_path) as input:
     lines = csv.DictReader(input, fieldnames=['userID', 'itemID', 'rating', 'time'])
     data_entries = [(i['userID'], i['itemID'], i['rating'], i['time']) for i in lines]
 
