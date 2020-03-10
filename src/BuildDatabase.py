@@ -2,24 +2,31 @@
 # http://www.grroups.com/blog/sqlite-working-with-large-data-sets-in-python-effectively
 
 # Create and set-up database
-import sqlite3, csv
+import sqlite3
+import csv
 import time
+import os
 
-databasePath = 'Data/comp3208-train-small.csv'
-databaseFileName = 'ratings.db'
-databaseTableName = 'ratings'
+database_name = "example"
+table_name = "example"
+csv_name = "example-train"
+#csv_name = "comp3208-train-small"
+
+local_dir = os.path.dirname(__file__)
+csv_path = os.path.join(local_dir, "../Data/" + csv_name + ".csv")
 
 start_time = time.clock()
-connection = sqlite3.connect('ratings.db')
+connection = sqlite3.connect(database_name + ".db")
 cur = connection.cursor()
-# Create the table
-cur.execute("CREATE TABLE ratings (userID INT, itemID INT, rating FLOAT, time INT);")
 
-with open(databasePath) as input:
+# Create the table
+cur.execute(f"CREATE TABLE {table_name} (userID INTEGER, itemID INTEGER, rating FLOAT, time INTEGER, PRIMARY KEY (userID, itemID));")
+
+with open(csv_path) as input:
     lines = csv.DictReader(input, fieldnames=['userID', 'itemID', 'rating', 'time'])
     data_entries = [(i['userID'], i['itemID'], i['rating'], i['time']) for i in lines]
 
-cur.executemany("INSERT INTO ratings (userID, itemID, rating, time) VALUES (?, ?, ?, ?);", data_entries)
+cur.executemany(f"INSERT INTO {database_name} (userID, itemID, rating, time) VALUES (?, ?, ?, ?);", data_entries)
 connection.commit()
 connection.close()
 

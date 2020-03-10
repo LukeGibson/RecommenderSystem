@@ -2,7 +2,11 @@
 # import time
 # start_time = time.clock()
 import sqlite3
-connection = sqlite3.connect('../ratings.db')
+import os
+
+local_dir = os.path.dirname(__file__)
+db_path = os.path.join(local_dir, '../ratings.db')
+connection = sqlite3.connect(db_path)
 cur = connection.cursor()
 
 # for loop over all rows ordered by userID
@@ -64,11 +68,19 @@ cur = connection.cursor()
 
 
 # database call - given userItems get a list of userId's who also have a rating for at least 1 of the items
-itemList = [12793, 113, 1876]
-userList = []
-for i in range(len(itemList)):
-    criteria = (itemList[i],)
-    for row in cur.execute('SELECT userID FROM ratings WHERE itemID = ?', criteria):
-        userList.append(row[0])
-userList = list(dict.fromkeys(userList))
-print(userList)
+# itemList = [12793, 113, 1876]
+# userList = []
+# for i in range(len(itemList)):
+#     criteria = (itemList[i],)
+#     for row in cur.execute('SELECT userID FROM ratings WHERE itemID = ?', criteria):
+#         userList.append(row[0])
+# userList = list(dict.fromkeys(userList))
+# print(userList)
+
+criteria = (333333333, 2)
+db_call = cur.execute('SELECT rating FROM ratings WHERE userID = ? AND itemID = ?', criteria)
+for row in db_call:
+    u2_item = row[0]
+    print(u2_item + "!")
+if db_call:
+    print("t")
