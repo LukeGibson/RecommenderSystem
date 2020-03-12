@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from src import MakePrediction
+import MakePrediction
 
 local_dir = os.path.dirname(__file__)
 db_path = os.path.join(local_dir, 'ratings.db')

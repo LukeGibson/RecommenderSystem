@@ -12,7 +12,7 @@ databaseFileName = 'ratings.db'
 databaseTableName = 'ratings'
 
 start_time = time.clock()
-connection = sqlite3.connect('ratings.db')
+connection = sqlite3.connect('src/ratings.db')
 cur = connection.cursor()
 # Create the table
 cur.execute("CREATE TABLE ratings (userID INT, itemID INT, rating FLOAT, time INT);")

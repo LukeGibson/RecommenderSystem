@@ -13,3 +13,48 @@ Method 2:
     - Select neighbourhood as the N users with the highest similarity score
     - For each item not rated by currentUser calculate its predicted rating using the pred(currentUser, item) function
     - Return the M items with the highest predicted rating as the recommendations
+
+
+NOTES:
+
+    - Finding a users ratings for a list of shared items
+        Before: 39sec
+
+        for i in range(len(shared_items)):
+            criteria = (user_id, shared_items[i],)
+            for row in cursor.execute('SELECT rating FROM ratings WHERE userID = ? AND itemID = ?', criteria):
+                u1_ratings.append(row[0])
+
+        After: 1sec
+
+        for row in cursor.execute(f"SELECT rating FROM ratings WHERE userID = ? AND itemID IN ({','.join(map(str, shared_items))}) ", criteria):
+            u1_ratings.append(row[0])
+    
+    - In sim changed so that it takes user_subset instead of indevidual user
+        This means it can calculate the u1 infomation a single time intead of re-calculating it for each user call
+        Also as u1 ratings are previously calculated in get_prediction it is passed to the sim function as a parameter so that all the u1 user_ratings can stored in memory
+        For each user sim score calculation now only 2 database calls are made:
+            - The u2 shared item ratings
+            - The u2 average
+    
+    - Changed get shared u2 shared ratings call
+        Now stores all the items rated by u2 in a dict
+        This also allows us to calculate the average rating for u2 without another database call
+        The u1 and u2 rating dicts are now compeared in memory without any indevidual database calls per shared item
+    
+    - Applied same porcess to pred
+        Storing all ratings of u2 from a single pass of the database, stored in a dictionary so we can compeare with u1 ratings to find shared ratings
+        The u2 average can then be calculated by iterating through this list instead of the whole database
+
+    - Currently: sim per u2 in user subset takes ~ 1sec AND pred per u2 in neighbourhood ~ 1.5sec
+
+    - Each time a query is made to the database all rows are inspected from 1 to db.size this is ~ 10million rows to inspect
+        We can exploit the fact that all user ratings in cvs are in userId accending order (all user1 ratings appear before user2 ratings etc.)
+        Therefore we can binary search the rows of our database to find the user we want the ratings for
+        In Sqlite this requires a PRIMARY KEY - for this we use a composite of userId and itemId
+        This will increase our database calls from a time complexity of O(n) to O(log2(n))
+        As n in the case of the small database is 10 million this makes a very large time difference
+    
+    - Currently: sim per u2 in user subset takes ~ 0.0036 sec AND pred per u2 in neighbourhood ~ 0.0033 sec
+
+    - NEXT GOAL: build indevidual tables for each user containing all the users ratings
