@@ -57,4 +57,35 @@ NOTES:
     
     - Currently: sim per u2 in user subset takes ~ 0.0036 sec AND pred per u2 in neighbourhood ~ 0.0033 sec
 
-    - NEXT GOAL: build indevidual tables for each user containing all the users ratings
+    - Build indevidual tables for each user containing all the users ratings, using itemID as PRIMARY KEY
+        This will take longer to build the database as it will run more create table querys
+        The advantage of doing this means we can query for all a users ratings much quicker by only searching entries the users own table instead of searching through all user entries.
+        * PROBLEM - This required to much memory when building the database tables as ~ 280'000 tables would be required
+        * Instead have created sub groups of users where a table contains upto some threshold ~ 5000 users ~ 50 tables
+        * Also requires a full database when counting number of shared ratings
+        
+
+Problems:
+
+    User Cold Start = when a user joins the system they have made no ratings and therefore can't find similar users to generate predicted rating for
+        Look at number of users in the database that have no or small number of ratings - If large will be a problem
+        Have a hybrid approach that if user has few ratings uses a different approach from collaberative filtering...
+            can't use content as no infomation is known about the items
+    
+    Missing Values = if a user in the test set doesn't exist in the train set, how should this exception be handelled
+
+    Test different similarity measures - test results on validation set and include in report
+        Measures such as: pearson, cosine, mean square difference
+        For each tune parameters such as neighbourhood size
+        Cacluating accuracy metrics for each approach
+
+    
+
+    
+
+
+
+Literature:
+    https://www.researchgate.net/publication/337051634_Recent_Developments_in_Recommender_Systems
+    https://core.ac.uk/download/pdf/22877074.pdf
+    https://towardsdatascience.com/4-ways-to-supercharge-your-recommendation-system-aeac34678ce9
