@@ -44,8 +44,8 @@ def sim(user_ratings_dict, user_subset, cursor):
         b = math.sqrt(b)
         c = math.sqrt(c)
 
-        if count < 5:
-            print("DB call time:", db_end - db_start)
+        # if count < 5:
+        #     print("DB call time:", db_end - db_start)
 
         # round the equation output to 3 decimal places
         sim_scores.append((u2, a / (b * c)))
@@ -115,7 +115,7 @@ def get_prediction(user_id, item_id, table_nm, cursor):
     user_subset.remove(user_id)
     before = len(user_item_count) - 1
     after = len(user_subset)
-    print("Users before:", before, ", Users after:", after, ", Difference:", before - after)
+    #print("Users before:", before, ", Users after:", after, ", Difference:", before - after)
 
     #print("User Subset", user_subset)
 
@@ -123,19 +123,19 @@ def get_prediction(user_id, item_id, table_nm, cursor):
     time_a = time.time()
     sim_scores = sim(ratings_dict, user_subset, cursor)
     time_b = time.time()
-    print("Average sim time:", (time_b - time_a)/len(sim_scores))
+    #print("Average sim time:", (time_b - time_a)/len(sim_scores))
     # for compare_user_id in user_subset:
     #     sim_score = sim(user_id, compare_user_id, cursor)
     #     sim_scores.append((compare_user_id, sim_score))
     
-    print("Similarity scores between user and user subset:", sim_scores)
+    #print("Similarity scores between user and user subset:", sim_scores)
 
     # select the neighbourhood topN most similar users from the userSubset
     neighbours = []
     topN = 12_000 if len(sim_scores) > 12_000 else len(sim_scores)
     # if < 2500 keep all, form 2000, 12000 scale, never more than 12,000
 
-    print("topN:", topN)
+    #print("topN:", topN)
 
     # orders the sim_scores in accending order - then takes the sim_score indexes of the last N elements: N most similar users.
     user_indexs = np.argsort([score[1] for score in sim_scores])[-topN:]
@@ -143,10 +143,10 @@ def get_prediction(user_id, item_id, table_nm, cursor):
     for index in user_indexs:
         neighbours.append(sim_scores[index])
     
-    print("Users most similar neighbours:", neighbours)
+    #print("Users most similar neighbours:", neighbours)
 
     time_a = time.time()
     result = pred(ratings_dict, item_id, neighbours, cursor)
     time_b = time.time()
-    print("Pred time per neighbour:", (time_b - time_a)/len(neighbours))
+    #print("Pred time per neighbour:", (time_b - time_a)/len(neighbours))
     return result
