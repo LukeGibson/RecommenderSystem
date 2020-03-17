@@ -3,6 +3,10 @@ import math
 import time
 
 
+def make_table_name(x):
+    return "users_to_" + str(int(math.ceil(int(x) / 5_000)) * 5000) + "_ratings"
+
+
 # uses the Pearson coefficient to calculate the similarity between 2 users
 # user_ratings_dict = {item_id, rating}
 def sim(user_ratings_dict, user_subset, cursor):
@@ -18,6 +22,7 @@ def sim(user_ratings_dict, user_subset, cursor):
 
         if count < 5:
             db_start = time.time()
+        table_name = make_table_name(u2)
         for row in cursor.execute(f'SELECT itemID, rating FROM {table_name} WHERE userID = ?', (u2,)):
             u2_ratings_dict.update({row[0]: row[1]})
         if count < 5:
@@ -45,7 +50,7 @@ def sim(user_ratings_dict, user_subset, cursor):
         c = math.sqrt(c)
 
         if count < 5:
-            print("DB call time:", db_end - db_start)
+            print("DB call time:", db_end - db_start, "Dict size:", len(u2_ratings_dict))
 
         # round the equation output to 3 decimal places
         sim_scores.append((u2, a / (b * c)))
@@ -64,6 +69,7 @@ def pred(user_ratings_dict, item_id, neighbours, cursor):
     for u2, u2_sim in neighbours:
         # database call - given userId get a users average rating (rounded to 2dp)
         u2_ratings_dict = {}
+        table_name = make_table_name(u2)
         for row in cursor.execute(f'SELECT itemID, rating FROM {table_name} WHERE userID = ?', (u2,)):
             u2_ratings_dict.update({row[0]: row[1]})
 
@@ -83,13 +89,12 @@ def pred(user_ratings_dict, item_id, neighbours, cursor):
 
 
 # cur object is cursor for databases
-def get_prediction(user_id, item_id, table_nm, cursor):
-    global table_name
-    table_name = table_nm
+def get_prediction(user_id, item_id, large_table_name, cursor):
     # userRatings[0] = item, userRatings[1] = score
     ratings_dict = {}
     # given a userId get a list of (itemId, ratings) they've made
     criteria = (user_id,)
+    table_name = make_table_name(user_id)
     for row in cursor.execute(f'SELECT itemID, rating FROM {table_name} WHERE userID = ?', criteria):
         ratings_dict.update({row[0]: row[1]})
 
@@ -105,7 +110,8 @@ def get_prediction(user_id, item_id, table_nm, cursor):
     thresh = 30 if len(ratings_dict.items()) > 30 else len(ratings_dict.items())
     # print("Thresh:", thresh)
     user_item_count = {}
-    for row in cursor.execute(f"SELECT userID FROM {table_name} WHERE itemID IN ({','.join(map(str, ratings_dict.keys()))}) "):
+    table_name = make_table_name(user_id)
+    for row in cursor.execute(f"SELECT userID FROM {large_table_name} WHERE itemID IN ({','.join(map(str, ratings_dict.keys()))}) "):
         user_item_count[row[0]] = user_item_count.get(row[0], 0) + 1
 
     user_subset = []

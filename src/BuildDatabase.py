@@ -7,10 +7,10 @@ import csv
 import time
 import os
 
-database_name = "example"
-table_name = "example"
-csv_name = "example-train"
-#csv_name = "comp3208-train-small"
+database_name = "ratings"
+table_name = "ratings"
+#csv_name = "example-train"
+csv_name = "comp3208-train-small"
 
 local_dir = os.path.dirname(__file__)
 csv_path = os.path.join(local_dir, "../Data/" + csv_name + ".csv")
@@ -21,6 +21,7 @@ cur = connection.cursor()
 
 # Create the table
 cur.execute(f"CREATE TABLE {table_name} (userID INTEGER, itemID INTEGER, rating FLOAT, time INTEGER, PRIMARY KEY (userID, itemID));")
+
 
 with open(csv_path) as input:
     lines = csv.DictReader(input, fieldnames=['userID', 'itemID', 'rating', 'time'])

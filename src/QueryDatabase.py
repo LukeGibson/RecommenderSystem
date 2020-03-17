@@ -3,11 +3,21 @@
 # start_time = time.clock()
 import sqlite3
 import os
+import math
 
 local_dir = os.path.dirname(__file__)
-db_path = os.path.join(local_dir, '../ratings.db')
+db_path = os.path.join(local_dir, './ratingsV2.db')
 connection = sqlite3.connect(db_path)
 cur = connection.cursor()
+
+lastID = 250000
+
+print(int(math.ceil(int(lastID) / 5_000)) * 5000)
+table_name = "users_to_250000_ratings"
+for row in cur.execute(f"SELECT * FROM {table_name} WHERE userID = {lastID}"):
+    print(row)
+# for row in cur.execute(f"SELECT * FROM {table_name}"):
+#     print(row)
 
 # for loop over all rows ordered by userID
 # for row in cur.execute('SELECT * FROM ratings ORDER BY userID'):
@@ -77,10 +87,10 @@ cur = connection.cursor()
 # userList = list(dict.fromkeys(userList))
 # print(userList)
 
-criteria = (333333333, 2)
-db_call = cur.execute('SELECT rating FROM ratings WHERE userID = ? AND itemID = ?', criteria)
-for row in db_call:
-    u2_item = row[0]
-    print(u2_item + "!")
-if db_call:
-    print("t")
+# criteria = (333333333, 2)
+# db_call = cur.execute('SELECT rating FROM ratings WHERE userID = ? AND itemID = ?', criteria)
+# for row in db_call:
+#     u2_item = row[0]
+#     print(u2_item + "!")
+# if db_call:
+#     print("t")
