@@ -5,7 +5,7 @@ import os
 from time import time
 from src import MakePrediction, MakePredictionPandas, MakePredictionV2
 
-name = "ratings"
+name = "small"
 local_dir = os.path.dirname(__file__)
 db_path = os.path.join(local_dir,  name + '.db')
 connection = sqlite3.connect(db_path)
@@ -14,19 +14,21 @@ cur = connection.cursor()
 
 # Tests
 
-# start = time()
-# for i in range(10):
-#     _ = MakePrediction.get_prediction(1, 3, "ratings", cur)
-#     print(f"Made prediction: {i + 1}")
-# end = time()
-# avg_time = (end - start)/10
-# small_predictions = 496526
-# print(f"Time for, on average, per prediction = {round(avg_time, 4)} seconds")
-# print(f"Time for all small test predictions = {(avg_time * small_predictions) / 3600} hrs")
-
 start = time()
 for i in range(1):
-    r = MakePredictionPandas.get_prediction(1, 3, "ratings", cur)
+    r = MakePrediction.get_prediction(1, 3, "ratings", cur)
+    print(f"Made prediction: {i + 1} of {r}")
+end = time()
+avg_time = (end - start)/10
+small_predictions = 496526
+print(f"Time for, on average, per prediction = {round(avg_time, 4)} seconds")
+print(f"Time for all small test predictions = {(avg_time * small_predictions) / 3600} hrs")
+
+print("Connection made")
+start = time()
+item_list = [3]
+for i in range(1):
+    r = MakePredictionPandas.get_prediction(1, item_list, "ratings", cur)
     print(f"Made prediction: {i + 1}, Rating: {r}")
 end = time()
 avg_time = (end - start)/10

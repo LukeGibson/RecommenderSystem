@@ -5,13 +5,10 @@ import pandas as pd
 
 
 # uses the Pearson coefficient to calculate the similarity between 2 users
-# user_ratings_dict = {item_id, rating}
-def calc_sim_scores(df, u1):
+def calc_sim_scores(df, u1, user_subset):
+
     u1_avg = df.loc[u1]['rating'].mean()
     u1_items = [y for x, y in df.index if x == u1]
-
-    user_subset = [x for x, y in df.index]
-    user_subset.remove(u1)
 
     sim_scores = []
 
@@ -25,7 +22,6 @@ def calc_sim_scores(df, u1):
         u2_avg = df.loc[u2]['rating'].mean()
         # accumulator for 3 parts of sim equation
         a, b, c = 0, 0, 0
-
 
         for item in shared_items:
             rating_u1 = df.loc[(u1, item)]['rating'] - u1_avg
@@ -41,10 +37,6 @@ def calc_sim_scores(df, u1):
         b = math.sqrt(b)
         c = math.sqrt(c)
 
-        # if count < 5:
-        #     print("DB call time:", db_end - db_start)
-
-        # round the equation output to 3 decimal places
         sim_scores.append((u2, a / (b * c)))
 
     return sim_scores
@@ -52,30 +44,21 @@ def calc_sim_scores(df, u1):
 
 # calculate the predicted rating for user on item given a neighbourhood of similar users and their simScores
 def pred(df, u1, item_id, neighbours):
-
     u1_avg = df.loc[u1]['rating'].mean()
-
-    a = 0
-    b = 0
+    a, b = 0, 0
 
     for u2, u2_sim in neighbours:
-        u2_avg = u1_avg = df.loc[u2]['rating'].mean()
-        
-        # check u2 has rated that item, if so accumulate the scores
+        u2_avg = df.loc[u2]['rating'].mean()
+
         if (u2, item_id) in df.index:
             a += u2_sim * (df.loc[(u2, item_id)]['rating'] - u2_avg)
             b += u2_sim
-    
-    if b == 0:
-        result = u1_avg
-    else:
-        result = u1_avg + (a / b)    
 
-    return result
+    return u1_avg if b == 0 else u1_avg + (a/b)
 
 
 # cur object is cursor for databases
-def get_prediction(user_id, item_id, table_nm, cursor):
+def get_prediction(user_id, item_list, table_nm, cursor):
 
     # given a userId get a list of (itemId, ratings) they've made
     df = pd.DataFrame(columns=['userID', 'itemID', 'rating', 'time']).set_index(['userID', 'itemID'])
@@ -87,24 +70,23 @@ def get_prediction(user_id, item_id, table_nm, cursor):
         user_dict["time"].append(row[2])
     df = df.append(pd.DataFrame.from_dict(user_dict).set_index(['userID', 'itemID']))
 
-    # check user hasn't already rated item
-    if (user_id, item_id) in df.index:
-        print("User already rated this item!")
-        return df.loc[(user_id, item_id)]['rating']
-    # database call - given userItems get a list of userId's who also have a rating for at least 1 of the items
-    # userID and all the items they've rated, then look to see how of these are one of the items our user has rated
+    # getting building dict of user to number of u1's items they've rates
     items_rated = [y for x, y in df.index]
     thresh = 30 if len(items_rated) > 30 else len(items_rated)
     user_item_count = {}
     for row in cursor.execute(f"SELECT userID FROM {table_nm} WHERE itemID IN ({','.join(map(str, items_rated))})"):
         user_item_count[row[0]] = user_item_count.get(row[0], 0) + 1
 
+    # removing users from dict if count is less then threshold, and removing duplicates
     user_subset = []
     for x, y in user_item_count.items():
-        if y >= thresh:
+        if y >= thresh and x not in user_subset:
             user_subset.append(x)
     user_subset.remove(user_id)
 
+    # for the reduced users get all of their details
+    # both these calls are not needed but make things easier, if need one can go which by having a very,
+    # very large pandas dataframe and then having an accompaning list of users who meet the threshold.
     user_dict = {"userID": [], "itemID": [], "rating": [], "time": []}
     for row in cursor.execute(f"SELECT userID, itemID, rating, time FROM {table_nm} WHERE userID IN ({','.join(map(str, user_subset))})"):
         user_dict["userID"].append(row[0])
@@ -112,18 +94,24 @@ def get_prediction(user_id, item_id, table_nm, cursor):
         user_dict["rating"].append(row[2])
         user_dict["time"].append(row[3])
     df = df.append(pd.DataFrame.from_dict(user_dict).set_index(['userID', 'itemID']))
+    print("DF made")
 
-    sim_scores = calc_sim_scores(df, user_id)
-    # select the neighbourhood topN most similar users from the userSubset
+    sim_scores = calc_sim_scores(df, user_id, user_subset)
+    print("Sim scores made")
+
+    # get index of topN users, based on sim score
     neighbours = []
     topN = 12_000 if len(sim_scores) > 12_000 else len(sim_scores)
-
-    # orders the sim_scores in accending order - then takes the sim_score indexes of the last N elements:
-    # N most similar users.
-    user_indexs = np.argsort([score[1] for score in sim_scores])[-topN:]
-
-    for index in user_indexs:
+    user_indexes = np.argsort([score[1] for score in sim_scores])[-topN:]
+    for index in user_indexes:
         neighbours.append(sim_scores[index])
 
-    result = pred(ratings_dict, item_id, neighbours, cursor)
-    return result
+    results = []
+    for item_id in item_list:
+        if (user_id, item_id) in df.index:
+            print("User already rated this item!")
+            return df.loc[(user_id, item_id)]['rating']
+
+        results.append(pred(df, user_id, item_id, neighbours))
+    print("Pred made")
+    return results
