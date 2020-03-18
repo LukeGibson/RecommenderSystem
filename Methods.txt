@@ -63,7 +63,9 @@ NOTES:
         * PROBLEM - This required to much memory when building the database tables as ~ 280'000 tables would be required
         * Instead have created sub groups of users where a table contains upto some threshold ~ 5000 users ~ 50 tables
         * Also requires a full database when counting number of shared ratings
-        
+    
+    - Taking into account time of u2 rating in pred function:
+        Using a piecewise-linear activation function
 
 Problems:
 

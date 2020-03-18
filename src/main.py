@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from src import MakePredictionV2
+import MakePredictionV2
 
 name = "ratingsV2"
 local_dir = os.path.dirname(__file__)
