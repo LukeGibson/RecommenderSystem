@@ -57,10 +57,33 @@ def sim(user_ratings_dict, user_subset, cursor):
 
     return sim_scores
 
+# given an age of a rating in seconds calculates its relavence as a wighting from 0 to 1
+def get_age_weight(age):
+    # convert age from seconds to years
+    age = age / 31536000
+    print("Age:", age)
+
+    # set thresholds and their weight values
+    highThres = 2
+    highWeight = 1
+
+    lowThres = 20
+    lowWeight = 0.25
+
+    if age < highThres:
+        weight = highWeight
+    elif age > lowThres:
+        weight = lowWeight
+    else:
+        grad = (highWeight - lowWeight) / (highThres - lowThres)
+        weight = (grad*(age - highThres)) + 1
+    
+    return weight
+
 
 # calculate the predicted rating for user on item given a neighbourhood of similar users and their simScores
 def pred(user_ratings_dict, item_id, neighbours, cursor):
-
+    curr_time = time.time()
     u1_avg = sum(user_ratings_dict.values()) / len(user_ratings_dict)
 
     a = 0
@@ -74,16 +97,17 @@ def pred(user_ratings_dict, item_id, neighbours, cursor):
             u2_ratings_dict.update({row[0]: row[1]})
 
         u2_avg = sum(u2_ratings_dict.values()) / len(u2_ratings_dict)
-        
+
+        # GET THE TIMESTAMP FOR U2's RATING OF ITEM_ID 
+        time_stamp = 1584547289 # have set to 18/03/20
+        rating_age = curr_time - time_stamp
+        age_weight = get_age_weight(rating_age)
+
         # check u2 has rated that item, if so accumulate the scores
         if item_id in u2_ratings_dict:
 
-            # apply a weight to the u2_sim based on how recent the u2 rating of item_id is
-            # need access to the time that u2 rated item_id
-            # need current time
-
-            a += u2_sim * (u2_ratings_dict[item_id] - u2_avg)
-            b += u2_sim
+            a += age_weight * u2_sim * (u2_ratings_dict[item_id] - u2_avg)
+            b += age_weight * u2_sim
     
     if b == 0:
         result = u1_avg
