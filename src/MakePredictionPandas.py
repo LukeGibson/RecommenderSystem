@@ -51,24 +51,19 @@ def calc_sim_scores(df, u1):
 
 
 # calculate the predicted rating for user on item given a neighbourhood of similar users and their simScores
-def pred(user_ratings_dict, item_id, neighbours, cursor):
+def pred(df, u1, item_id, neighbours):
 
-    u1_avg = sum(user_ratings_dict.values()) / len(user_ratings_dict)
+    u1_avg = df.loc[u1]['rating'].mean()
 
     a = 0
     b = 0
 
     for u2, u2_sim in neighbours:
-        # database call - given userId get a users average rating (rounded to 2dp)
-        u2_ratings_dict = {}
-        for row in cursor.execute(f'SELECT itemID, rating FROM {table_name} WHERE userID = ?', (u2,)):
-            u2_ratings_dict.update({row[0]: row[1]})
-
-        u2_avg = sum(u2_ratings_dict.values()) / len(u2_ratings_dict)
+        u2_avg = u1_avg = df.loc[u2]['rating'].mean()
         
         # check u2 has rated that item, if so accumulate the scores
-        if item_id in u2_ratings_dict:
-            a += u2_sim * (u2_ratings_dict[item_id] - u2_avg)
+        if (u2, item_id) in df.index:
+            a += u2_sim * (df.loc[(u2, item_id)]['rating'] - u2_avg)
             b += u2_sim
     
     if b == 0:
@@ -100,7 +95,6 @@ def get_prediction(user_id, item_id, table_nm, cursor):
     # userID and all the items they've rated, then look to see how of these are one of the items our user has rated
     items_rated = [y for x, y in df.index]
     thresh = 30 if len(items_rated) > 30 else len(items_rated)
-    # print("Thresh:", thresh)
     user_item_count = {}
     for row in cursor.execute(f"SELECT userID FROM {table_nm} WHERE itemID IN ({','.join(map(str, items_rated))})"):
         user_item_count[row[0]] = user_item_count.get(row[0], 0) + 1
@@ -132,4 +126,4 @@ def get_prediction(user_id, item_id, table_nm, cursor):
         neighbours.append(sim_scores[index])
 
     result = pred(ratings_dict, item_id, neighbours, cursor)
-    return None # result
+    return result
