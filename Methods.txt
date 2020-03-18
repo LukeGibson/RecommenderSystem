@@ -79,13 +79,18 @@ Problems:
         For each tune parameters such as neighbourhood size
         Cacluating accuracy metrics for each approach
 
-    
-
-    
-
 
 
 Literature:
     https://www.researchgate.net/publication/337051634_Recent_Developments_in_Recommender_Systems
     https://core.ac.uk/download/pdf/22877074.pdf
     https://towardsdatascience.com/4-ways-to-supercharge-your-recommendation-system-aeac34678ce9
+
+
+
+Questions:
+    4 hours for full prediction 
+    only use timestamp for prediction calculation not similarity - just try different approaches not a referenced approach
+    use smart indexing for faster sql queries
+    not all items/users are in the test set
+    
