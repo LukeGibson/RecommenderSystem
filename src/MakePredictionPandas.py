@@ -1,6 +1,6 @@
 import numpy as np
 import math
-import time
+from time import time
 import pandas as pd
 
 
@@ -63,20 +63,23 @@ def get_prediction(user_id, item_list, table_nm, cursor):
     # given a userId get a list of (itemId, ratings) they've made
     df = pd.DataFrame(columns=['userID', 'itemID', 'rating', 'time']).set_index(['userID', 'itemID'])
     user_dict = {"userID": [], "itemID": [], "rating": [], "time": []}
+    s = time()
     for row in cursor.execute(f'SELECT itemID, rating, time FROM {table_nm} WHERE userID = ?', (user_id,)):
         user_dict["userID"].append(user_id)
         user_dict["itemID"].append(row[0])
         user_dict["rating"].append(row[1])
         user_dict["time"].append(row[2])
     df = df.append(pd.DataFrame.from_dict(user_dict).set_index(['userID', 'itemID']))
-
+    print("First DB call", (time() - s))
     # getting building dict of user to number of u1's items they've rates
     items_rated = [y for x, y in df.index]
     thresh = 30 if len(items_rated) > 30 else len(items_rated)
     user_item_count = {}
-    for row in cursor.execute(f"SELECT userID FROM {table_nm} WHERE itemID IN ({','.join(map(str, items_rated))})"):
+    items_to_search = ','.join(map(str, items_rated))
+    s = time()
+    for row in cursor.execute(f"SELECT userID FROM {table_nm} WHERE itemID IN ({items_to_search})"):
         user_item_count[row[0]] = user_item_count.get(row[0], 0) + 1
-
+    print("Second DB call", (time() - s))
     # removing users from dict if count is less then threshold, and removing duplicates
     user_subset = []
     for x, y in user_item_count.items():
@@ -87,6 +90,7 @@ def get_prediction(user_id, item_list, table_nm, cursor):
     # for the reduced users get all of their details
     # both these calls are not needed but make things easier, if need one can go which by having a very,
     # very large pandas dataframe and then having an accompaning list of users who meet the threshold.
+    s = time()
     user_dict = {"userID": [], "itemID": [], "rating": [], "time": []}
     for row in cursor.execute(f"SELECT userID, itemID, rating, time FROM {table_nm} WHERE userID IN ({','.join(map(str, user_subset))})"):
         user_dict["userID"].append(row[0])
@@ -94,10 +98,9 @@ def get_prediction(user_id, item_list, table_nm, cursor):
         user_dict["rating"].append(row[2])
         user_dict["time"].append(row[3])
     df = df.append(pd.DataFrame.from_dict(user_dict).set_index(['userID', 'itemID']))
-    print("DF made")
+    print("Third DB call", (time() - s))
 
     sim_scores = calc_sim_scores(df, user_id, user_subset)
-    print("Sim scores made")
 
     # get index of topN users, based on sim score
     neighbours = []
@@ -109,9 +112,8 @@ def get_prediction(user_id, item_list, table_nm, cursor):
     results = []
     for item_id in item_list:
         if (user_id, item_id) in df.index:
-            print("User already rated this item!")
-            return df.loc[(user_id, item_id)]['rating']
-
-        results.append(pred(df, user_id, item_id, neighbours))
-    print("Pred made")
+            # User already rated this item so just return it
+            results.append(df.loc[(user_id, item_id)]['rating'])
+        else:
+            results.append(pred(df, user_id, item_id, neighbours))
     return results
