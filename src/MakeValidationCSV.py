@@ -34,7 +34,7 @@ index_list = list(OrderedDict.fromkeys(df.index.get_level_values(0)))
 
 train_dict = {"userID": [], "itemID": [], "rating": [], "time": []}
 test_dict = {"userID": [], "itemID": [], "rating": [], "time": []}
-for i in tqdm(index_list):
+for i in tqdm(index_list, ):
     lines = df.loc[i][:-1]
     for j in range(len(lines['rating'])):
         train_dict["userID"].append(i)
@@ -47,13 +47,18 @@ for i in tqdm(index_list):
     test_dict["rating"].append(line.values[0][0])
     test_dict["time"].append(line.values[0][1])
 train_df = train_df.append(pd.DataFrame.from_dict(train_dict), sort=True).set_index(['userID', 'itemID'])
+a = train_df.index.get_level_values(0).astype(int)
+b = train_df.index.get_level_values(1).astype(int)
+train_df.index = [a, b]
 test_df = test_df.append(pd.DataFrame.from_dict(test_dict), sort=True).set_index(['userID', 'itemID'])
-print(train_df)
-print(test_df)
+a = test_df.index.get_level_values(0).astype(int)
+b = test_df.index.get_level_values(1).astype(int)
+test_df.index = [a, b]
+
 
 
 # output the df's to csv files
-trainPath = os.path.join(local_dir, "../Data/" + size + "Train" + str(i) + ".csv")
-valPath = os.path.join(local_dir, "../Data/" + size + "Validation" + str(i) + ".csv")
-train_df.to_csv(trainPath, index=False, header=False)
-test_df.to_csv(valPath, index=False, header=False)
+trainPath = os.path.join(local_dir, "../Data/" + size + "Train.csv")
+valPath = os.path.join(local_dir, "../Data/" + size + "Validation.csv")
+train_df.to_csv(trainPath, index=True, header=False)
+test_df.to_csv(valPath, index=True, header=False)
