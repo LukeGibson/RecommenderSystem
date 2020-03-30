@@ -17,18 +17,27 @@ start = time()
 
 with open(csv_path) as csv_file:
     lines = csv.DictReader(csv_file, fieldnames=['userID', 'itemID', 'rating', 'time'])
+    data_entries = [(i['userID'], i['itemID'], i['rating'], i['time']) for i in lines]
 
-print(lines)
 
-# total = 0
-# n = len(lines)
-# for i in tqdm(lines):
-#     pred = MakePredictionPandas.get_prediction(i['userID'], [i['itemID']], "ratings", cur)
-#     total += pow(pred - i['rating'], 2)
-# end = time()
-#
-# MSE = total / n
-#
-# print(f"MSE for validation set = {MSE}")
-# print(f"Total time taken: {end - start}")
+total = 0
+n = len(data_entries)
+# count = 0
+for i in tqdm(data_entries):
+    user = int(i[0])
+    item_list = [int(i[1])]
+    rating = float(i[2])
+    # count += 1
+    # if count < 10:
+    #     print(i)
+    #     print(f"UserID: {i[0]}, ItemID: {i[1]}, Rating: {i[2]}")
+    predictions = MakePredictionPandas.get_prediction(user, item_list, "ratings", cur)
+    print(predictions)
+    total += pow(predictions[0] - rating, 2)
+end = time()
+
+MSE = total / n
+
+print(f"MSE for validation set = {MSE}")
+print(f"Total time taken: {end - start}")
 
