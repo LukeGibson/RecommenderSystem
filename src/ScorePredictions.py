@@ -24,7 +24,7 @@ for i in range(3):
     random.seed(i) # fixed seed to make sample_list constant
     sample_size = 1_000
     sample_list = random.sample(data_entries, sample_size)
-    total = 0
+    round_total, floor_total, ceil_total = 0, 0, 0
     n = len(sample_list)
     # count = 0
     for line in tqdm(sample_list):
@@ -39,14 +39,16 @@ for i in range(3):
             round_05 = round(pred * 2) / 2
             ceil_05 = ceil(pred * 2) / 2
             floor_05 = floor(pred * 2) / 2
-            print(f"True Value: {pred}, Rounded pred: {round_05}, Ceil pred: {ceil_05}, Floor pred: {floor_05}")
-            total += pow(predictions[0] - rating, 2)
+            # print(f"True Value: {pred}, Rounded pred: {round_05}, Ceil pred: {ceil_05}, Floor pred: {floor_05}")
+            round_total += pow(round_05 - rating, 2)
+            floor_total += pow(floor_05 - rating, 2)
+            ceil_total += pow(ceil_05 - rating, 2)
         else:
             n -= 1
     end = time()
 
-    MSE = total / n
-
-    print(f"MSE for validation set = {MSE}")
+    print(f"MSE for rounding = {round_total / n}")
+    print(f"MSE for flooring = {floor_total / n}")
+    print(f"MSE for ceiling = {ceil_total / n}")
     print(f"Total time taken: {end - start}")
 
