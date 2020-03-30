@@ -7,10 +7,10 @@ import csv
 import time
 import os
 
-database_name = "small"
+database_name = "ratings"
 table_name = "ratings"
-csv_name = "example-train"
-# csv_name = "comp3208-train-small"
+# csv_name = "example-train"
+csv_name = "comp3208-train-small"
 
 local_dir = os.path.dirname(__file__)
 csv_path = os.path.join(local_dir, "../Data/" + csv_name + ".csv")
