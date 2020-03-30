@@ -21,12 +21,13 @@ with open(csv_path) as csv_file:
     data_entries = [(i['userID'], i['itemID'], i['rating'], i['time']) for i in lines]
 
 for i in range(3):
-    random.seed(i) # fixed seed to make sample_list constant
+    # fixed seed to make sample_list constant
+    random.seed(i)
     sample_size = 1_000
     sample_list = random.sample(data_entries, sample_size)
     round_total, floor_total, ceil_total = 0, 0, 0
     n = len(sample_list)
-    # count = 0
+
     for line in tqdm(sample_list):
         user = int(line[0])
         item_list = [int(line[1])]
@@ -39,6 +40,7 @@ for i in range(3):
             round_05 = round(pred * 2) / 2
             ceil_05 = ceil(pred * 2) / 2
             floor_05 = floor(pred * 2) / 2
+            # print(user, item_list)
             # print(f"True Value: {pred}, Rounded pred: {round_05}, Ceil pred: {ceil_05}, Floor pred: {floor_05}")
             round_total += pow(round_05 - rating, 2)
             floor_total += pow(floor_05 - rating, 2)
