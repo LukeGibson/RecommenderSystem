@@ -36,8 +36,10 @@ def calc_sim_scores(df, u1, user_subset):
 
         b = math.sqrt(b)
         c = math.sqrt(c)
-
-        sim_scores.append((u2, a / (b * c)))
+        if b == 0 or c == 0:
+            sim_scores.append((u2, 0))
+        else:
+            sim_scores.append((u2, a / (b * c)))
 
     return sim_scores
 
@@ -89,7 +91,6 @@ def get_prediction(user_id, item_list, table_nm, cursor):
         if count < max_user_size:
             if not k == user_id:
                 user_subset.append(k)
-                print(k, v)
                 count += 1
     # thresh = 30 if len(items_rated) > 30 else len(items_rated)
     # for x, y in user_item_count.items():
@@ -109,10 +110,11 @@ def get_prediction(user_id, item_list, table_nm, cursor):
         user_dict["time"].append(row[3])
     df = df.append(pd.DataFrame.from_dict(user_dict).set_index(['userID', 'itemID']))
     print("Third DB call", (time() - s))
-    print(df)
     # print(f"Threshold: {thresh}, Len of User_subset: {len(user_subset)}")
 
     s = time()
+    if len(user_subset) == 0:
+        return None
     sim_scores = calc_sim_scores(df, user_id, user_subset)
     print("Sim time: ", (time() - s))
     # get index of topN users, based on sim score
