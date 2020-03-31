@@ -23,7 +23,7 @@ with open(csv_path) as csv_file:
 for i in range(3):
     # fixed seed to make sample_list constant
     random.seed(i)
-    sample_size = 1_000
+    sample_size = 1_0
     sample_list = random.sample(data_entries, sample_size)
     round_total, floor_total, ceil_total = 0, 0, 0
     n = len(sample_list)
@@ -41,7 +41,7 @@ for i in range(3):
             ceil_05 = ceil(pred * 2) / 2
             floor_05 = floor(pred * 2) / 2
             # print(user, item_list)
-            # print(f"True Value: {pred}, Rounded pred: {round_05}, Ceil pred: {ceil_05}, Floor pred: {floor_05}")
+            print(f"True Value: {pred}, Rounded pred: {round_05}, Ceil pred: {ceil_05}, Floor pred: {floor_05}")
             round_total += pow(round_05 - rating, 2)
             floor_total += pow(floor_05 - rating, 2)
             ceil_total += pow(ceil_05 - rating, 2)

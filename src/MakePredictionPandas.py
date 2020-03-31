@@ -72,7 +72,7 @@ def get_prediction(user_id, item_list, table_nm, cursor):
         user_dict["rating"].append(row[1])
         user_dict["time"].append(row[2])
     df = df.append(pd.DataFrame.from_dict(user_dict).set_index(['userID', 'itemID']))
-    print("First DB call", (time() - s))
+    # print("First DB call", (time() - s))
     # getting building dict of user to number of u1's items they've rates
     items_rated = [y for x, y in df.index]
     user_item_count = {}
@@ -80,7 +80,7 @@ def get_prediction(user_id, item_list, table_nm, cursor):
     s = time()
     for row in cursor.execute(f"SELECT userID FROM {table_nm} WHERE itemID IN ({items_to_search})"):
         user_item_count[row[0]] = user_item_count.get(row[0], 0) + 1
-    print("Second DB call", (time() - s))
+    # print("Second DB call", (time() - s))
 
     # removing users from dict if count is less then threshold, and removing duplicates
 
@@ -109,14 +109,14 @@ def get_prediction(user_id, item_list, table_nm, cursor):
         user_dict["rating"].append(row[2])
         user_dict["time"].append(row[3])
     df = df.append(pd.DataFrame.from_dict(user_dict).set_index(['userID', 'itemID']))
-    print("Third DB call", (time() - s))
+    # print("Third DB call", (time() - s))
     # print(f"Threshold: {thresh}, Len of User_subset: {len(user_subset)}")
 
     s = time()
     if len(user_subset) == 0:
         return None
     sim_scores = calc_sim_scores(df, user_id, user_subset)
-    print("Sim time: ", (time() - s))
+    # print("Sim time: ", (time() - s))
     # get index of topN users, based on sim score
     neighbours = []
     topN = 12_000 if len(sim_scores) > 12_000 else len(sim_scores)
