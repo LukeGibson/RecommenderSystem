@@ -14,11 +14,10 @@ def calc_sim_scores(df, u1, user_subset):
 
     for u2 in user_subset:
         # get shared items
-        u2_items = [y for x,y in df.index if x == u2]
+        u2_items = [y for x, y in df.index if x == u2]
         shared_items = [s for s in u1_items if s in u2_items]
 
         # given a userId and the sharedItems return the list of ratings
-
         u2_avg = df.loc[u2]['rating'].mean()
         # accumulator for 3 parts of sim equation
         a, b, c = 0, 0, 0
@@ -27,12 +26,9 @@ def calc_sim_scores(df, u1, user_subset):
             rating_u1 = df.loc[(u1, item)]['rating'] - u1_avg
             rating_u2 = df.loc[(u2, item)]['rating'] - u2_avg
 
-            rating_u1_sq = rating_u1 * rating_u1
-            rating_u2_sq = rating_u2 * rating_u2
-
             a += rating_u1 * rating_u2
-            b += rating_u1_sq
-            c += rating_u2_sq
+            b += math.pow(rating_u1, 2)
+            c += math.pow(rating_u1, 2)
 
         b = math.sqrt(b)
         c = math.sqrt(c)
@@ -56,17 +52,21 @@ def pred(df, u1, item_id, neighbours):
             a += u2_sim * (df.loc[(u2, item_id)]['rating'] - u2_avg)
             b += u2_sim
 
-    return u1_avg if b == 0 else u1_avg + (a/b)
+    predict = u1_avg if b == 0 else u1_avg + (a/b)
+    # clamps predict within 0 and 5
+    predict = max(0, min(5, predict))
+
+    return predict
 
 
 # cur object is cursor for databases
-def get_prediction(user_id, item_list, table_nm, cursor):
+def get_prediction(user_id, item_list, user_table_nm, item_table_nm, cursor):
 
     # given a userId get a list of (itemId, ratings) they've made
     df = pd.DataFrame(columns=['userID', 'itemID', 'rating', 'time']).set_index(['userID', 'itemID'])
     user_dict = {"userID": [], "itemID": [], "rating": [], "time": []}
     s = time()
-    for row in cursor.execute(f'SELECT itemID, rating, time FROM {table_nm} WHERE userID = ?', (user_id,)):
+    for row in cursor.execute(f'SELECT itemID, rating, time FROM {user_table_nm} WHERE userID = ?', (user_id,)):
         user_dict["userID"].append(user_id)
         user_dict["itemID"].append(row[0])
         user_dict["rating"].append(row[1])
@@ -78,32 +78,25 @@ def get_prediction(user_id, item_list, table_nm, cursor):
     user_item_count = {}
     items_to_search = ','.join(map(str, items_rated))
     s = time()
-    for row in cursor.execute(f"SELECT userID FROM {table_nm} WHERE itemID IN ({items_to_search})"):
+    for row in cursor.execute(f"SELECT userID FROM {item_table_nm} WHERE itemID IN ({items_to_search})"):
         user_item_count[row[0]] = user_item_count.get(row[0], 0) + 1
     # print("Second DB call", (time() - s))
 
     # removing users from dict if count is less then threshold, and removing duplicates
 
     user_subset = []
-    count = 0
     max_user_size = 25
     for k, v in sorted(user_item_count.items(), key=lambda item: item[1], reverse=True):
-        if count < max_user_size:
-            if not k == user_id:
-                user_subset.append(k)
-                count += 1
-    # thresh = 30 if len(items_rated) > 30 else len(items_rated)
-    # for x, y in user_item_count.items():
-    #     if y >= thresh and x not in user_subset:
-    #         user_subset.append(x)
-    # user_subset.remove(user_id)
+        if len(user_subset) < max_user_size and not k == user_id:
+            user_subset.append(k)
+
 
     # for the reduced users get all of their details
     # both these calls are not needed but make things easier, if need one can go which by having a very,
     # very large pandas dataframe and then having an accompaning list of users who meet the threshold.
     s = time()
     user_dict = {"userID": [], "itemID": [], "rating": [], "time": []}
-    for row in cursor.execute(f"SELECT userID, itemID, rating, time FROM {table_nm} WHERE userID IN ({','.join(map(str, user_subset))})"):
+    for row in cursor.execute(f"SELECT userID, itemID, rating, time FROM {user_table_nm} WHERE userID IN ({','.join(map(str, user_subset))})"):
         user_dict["userID"].append(row[0])
         user_dict["itemID"].append(row[1])
         user_dict["rating"].append(row[2])
