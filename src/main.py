@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from src import MakePredictionV2
+from src import MakePredictionV2, MakePrediction
 
 name = "ExampleTables"
 local_dir = os.path.dirname(__file__)
@@ -12,6 +12,7 @@ cur = connection.cursor()
 # Tests
 u = 1
 i = [3]
+# r = MakePrediction.get_prediction(u, i, "User_table", cur)
 r = MakePredictionV2.get_prediction(u, i, "User_table", "Item_table", cur)
 print("user", u, "for item", i, "has predicted rating", r)
 

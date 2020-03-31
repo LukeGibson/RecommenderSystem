@@ -1,5 +1,5 @@
 import numpy as np
-import math
+from math import sqrt, pow
 from time import time
 import pandas as pd
 
@@ -27,11 +27,11 @@ def calc_sim_scores(df, u1, user_subset):
             rating_u2 = df.loc[(u2, item)]['rating'] - u2_avg
 
             a += rating_u1 * rating_u2
-            b += math.pow(rating_u1, 2)
-            c += math.pow(rating_u1, 2)
+            b += pow(rating_u1, 2)
+            c += pow(rating_u2, 2)
 
-        b = math.sqrt(b)
-        c = math.sqrt(c)
+        b = sqrt(b)
+        c = sqrt(c)
         if b == 0 or c == 0:
             sim_scores.append((u2, 0))
         else:
@@ -103,7 +103,6 @@ def get_prediction(user_id, item_list, user_table_nm, item_table_nm, cursor):
         user_dict["time"].append(row[3])
     df = df.append(pd.DataFrame.from_dict(user_dict).set_index(['userID', 'itemID']))
     # print("Third DB call", (time() - s))
-    # print(f"Threshold: {thresh}, Len of User_subset: {len(user_subset)}")
 
     s = time()
     if len(user_subset) == 0:
