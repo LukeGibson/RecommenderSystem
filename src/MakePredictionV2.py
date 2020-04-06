@@ -53,10 +53,18 @@ def pred(df, u1, item_id, neighbours):
             b += u2_sim
 
     predict = u1_avg if b == 0 else u1_avg + (a/b)
-    # clamps predict within 0 and 5
-    predict = max(0, min(5, predict))
 
-    return predict
+    # clamps predict within 0 and 5
+    # predict = max(0, min(5, predict))
+
+    # Return None, done to see how good the normal predictions are
+    if predict > 5 or predict < 0:
+        return None
+    else:
+        return predict
+
+
+    # return predict
 
 
 # cur object is cursor for databases
