@@ -4,7 +4,7 @@ import csv
 from time import time
 from math import pow, ceil, floor
 from tqdm import tqdm
-from src import MakePredictionPandas
+import MakePredictionPandas
 import random
 
 name = "validation"
@@ -13,7 +13,7 @@ db_path = os.path.join(local_dir,  name + '.db')
 connection = sqlite3.connect(db_path)
 cur = connection.cursor()
 
-csv_path = "../Data/smallValidation.csv"
+csv_path = "Data/smallValidation.csv"
 start = time()
 
 with open(csv_path) as csv_file:
@@ -21,7 +21,7 @@ with open(csv_path) as csv_file:
     data_entries = [(i['userID'], i['itemID'], i['rating'], i['time']) for i in lines]
 
 for i in range(3):
-    random.seed(i) # fixed seed to make sample_list constant
+    random.seed(50) # fixed seed to make sample_list constant
     sample_size = 1_000
     sample_list = random.sample(data_entries, sample_size)
     total = 0

@@ -52,7 +52,6 @@ def sim(user_ratings_dict, user_subset, cursor):
         if count < 5:
             print("DB call time:", db_end - db_start, "Dict size:", len(u2_ratings_dict))
 
-        # round the equation output to 3 decimal places
         sim_scores.append((u2, a / (b * c)))
 
     return sim_scores
