@@ -1,6 +1,6 @@
 import sqlite3
 import os
-from src import MakePredictionV2, MakePrediction
+import MakePredictionV2
 
 name = "ExampleTables"
 local_dir = os.path.dirname(__file__)

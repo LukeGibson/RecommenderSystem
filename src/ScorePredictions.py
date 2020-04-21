@@ -4,7 +4,7 @@ import csv
 from time import time
 from math import pow, ceil, floor
 from tqdm import tqdm
-from src import MakePrediction, MakePredictionV2
+import MakePredictionV2
 import random
 
 name = "validation"
@@ -14,7 +14,7 @@ db_path = os.path.join(local_dir,  name + '.db')
 connection = sqlite3.connect(db_path)
 cur = connection.cursor()
 
-csv_path = "../Data/smallValidation.csv"
+csv_path = "Data/smallValidation.csv"
 
 
 with open(csv_path) as csv_file:
