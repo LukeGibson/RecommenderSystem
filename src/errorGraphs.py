@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 
 
 local_dir = str(os.path.dirname(__file__)) + "\\PredErrors\\"
-fileNames = ["roundErrors.txt", "ceilErrors.txt", "floorErrors.txt"]
+fileNames = ["trueErrors.txt", "roundErrors.txt", "ceilErrors.txt", "floorErrors.txt"]
 
 for fileName in fileNames:
         

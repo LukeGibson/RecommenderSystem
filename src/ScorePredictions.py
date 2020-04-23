@@ -17,8 +17,8 @@ db_path = os.path.join(local_dir,  name + '.db')
 connection = sqlite3.connect(db_path)
 cur = connection.cursor()
 
-
-csv_path = "Data/smallValidation.csv" # path to the validation file
+# path to the validation file
+csv_path = "Data/smallValidation.csv" 
 
 # all test ratings to loop through
 with open(csv_path) as csv_file:
@@ -26,14 +26,17 @@ with open(csv_path) as csv_file:
     data_entries = [(i['userID'], i['itemID'], i['rating'], i['time']) for i in lines]
 
 
-
 start = time()
-count = 0 # total count of predictions used to calculate MSE
 
-random.seed(1) # fixed seed to make sample_list constant
-sample_size = 2_500 # number of users we do validations on (smaller than total so its faster to run)
-sample_list = random.sample(data_entries, sample_size) # get the entries to do a vlaidation on
+# fixed seed to make sample_list constant
+random.seed(1) 
+# number of users we do validations on (smaller than total so its faster to run)
+sample_size = 2_500 
+# get the entries to do a vlaidation on
+sample_list = random.sample(data_entries, sample_size) 
 
+# initalsie the error lists
+true_abs_errors = []
 round_abs_errors = []
 ceil_abs_errors = []
 floor_abs_errors = []
@@ -44,12 +47,16 @@ for line in tqdm(sample_list):
     item_list = [int(line[1])]
     rating = float(line[2])
 
-    # predictions = MakePrediction.get_prediction(user, item_list, "ratings", cur)
+    # make the predictions for that user
     predictions = MakePredictionV2.get_prediction(user, item_list, "User_table", "Item_table", cur) # make prediction for that entry)
 
-    if predictions is not None: # check prediction list is a value
+    # check predictions list is not empty
+    if predictions is not None: 
+        # extract the single prediciton
         pred = predictions[0]
-        if pred is not None: # check the acctaul prediction is a value (not returned none due to exceeding bounds)
+        # check the acctaul prediction is not None
+        if pred is not None: 
+            # calculate the different roundings
             round_05 = round(pred * 2) / 2
             ceil_05 = ceil(pred * 2) / 2
             floor_05 = floor(pred * 2) / 2
@@ -58,12 +65,10 @@ for line in tqdm(sample_list):
             # print(f"True Value: {pred}, Rounded pred: {round_05}, Ceil pred: {ceil_05}, Floor pred: {floor_05}")
 
             # store list of absolute errors
+            true_abs_errors.append(abs(pred - rating))
             round_abs_errors.append(abs(round_05 - rating))
             ceil_abs_errors.append(abs(ceil_05 - rating))
             floor_abs_errors.append(abs(floor_05 - rating))
-
-            count += 1
-
 
 
 # writing the errors to file
@@ -77,11 +82,14 @@ except OSError:
 else:
     print("Truth Dir Created")
 
-
+true_file = str(local_dir + "trueErrors.txt")
 round_file = str(local_dir + "roundErrors.txt")
 ceil_file = str(local_dir + "ceilErrors.txt")
 floor_file = str(local_dir + "floorErrors.txt")
 
+with open(true_file, 'w') as file:
+    for pred in true_abs_errors:
+        file.write("%f\n" % pred)
 
 with open(round_file, 'w') as file:
     for pred in round_abs_errors:
@@ -95,17 +103,22 @@ with open(floor_file, 'w') as file:
     for pred in floor_abs_errors:
         file.write("%f\n" % pred)
 
+# calulate the squared errors
+true_square_errors = [x ** 2 for x in true_abs_errors]
 round_square_errors = [x ** 2 for x in round_abs_errors]
 floor_square_errors = [x ** 2 for x in floor_abs_errors]
 ceil_square_errors = [x ** 2 for x in ceil_abs_errors]
 
-
+# print the MSE results
 print("------- MSE --------")
+print(f"Truth = {np.mean(true_square_errors)}")
 print(f"Rounding = {np.mean(round_square_errors)}")
 print(f"Flooring = {np.mean(floor_square_errors)}")
 print(f"Ceiling = {np.mean(ceil_square_errors)}")
 
+# print the MAE results
 print("------- MAE --------")
+print(f"Truth = {np.mean(true_abs_errors)}")
 print(f"Rounding = {np.mean(round_abs_errors)}")
 print(f"Flooring = {np.mean(floor_abs_errors)}")
 print(f"Ceiling = {np.mean(ceil_abs_errors)}")
