@@ -67,6 +67,51 @@ NOTES:
     - Taking into account time of u2 rating in pred function:
         Using a piecewise-linear activation function
 
+-------------------------------- Easter Break --------------------------------
+
+    - Changed storing users info in a pandas dataframe
+        First DB call = 0.007979
+        Seconds DB call = 5.2785
+        Third DB call = 0.140047
+    
+    - Time incorperation (TestCalc.py)
+        - piecewise-linear approach
+        - computationally very fast (additional accuracy of a curved function wont be much better but would be slower)
+        - calculate age of rating using current time
+        - age then used to return a weight from 0-1 using a piecewise-linear 
+        - weight is then used in the pred equation to weight the simScore for that neighbour 
+
+    - Problem: if user has only rated a few items (3) the threshold of required shared number of ratings is also low (3)
+        * this results in a huge number of users being inspected for their similarity
+        * as loads of users will have rated all 3 of these items
+        * eg) user2 the user_subset is 7256, while user1 whos rated 30+ items is only 14
+        * SOLUTION = take the n users who have rated the most common items
+    
+    - As prediction returns a float but the true values are either .0 or .5 investigate weather rounding, flooring or ceiling is the best option
+
+    - tqdm libary used to monitor progress of long build loops
+
+    - validation database made to test MSE
+    
+    - Problem: very large MSE as pred() was rating scores way otuside boundries of 0-5
+        * This is due to possibility that similarity scores of neighbourhood can be negitive
+        * When the sum of the simScores (the denominator of the pred equation) is a very small possitive/negitive number then dividing by this produces a hugely possitive / negitive number outside of the rating boundries
+        * Solution don't take into account negitive sim scores - means the sum will not be close to 0
+    
+    - attempts to reduce MSE (not got below an MSE of 1.1)
+        * Clamp predictions between 0 and 5
+        * removing all users with negitive sim scores
+        * clamp sim scores between 0 to 1
+        * clamp sim scores between -1 to 1
+    
+    - Line chart of abs error made in validation ratings
+        shows that less than half of predicitons have an error greater than 0.5
+        meaning a few bad predictions are pulling down the MSE
+        shows when ploting abs error **2  and the huge spike in only the worst few predictions
+    
+    
+
+
 Problems:
 
     User Cold Start = when a user joins the system they have made no ratings and therefore can't find similar users to generate predicted rating for
