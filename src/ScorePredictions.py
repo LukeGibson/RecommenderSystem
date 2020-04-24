@@ -9,16 +9,19 @@ from tqdm import tqdm
 import MakePredictionV2
 import random
 import numpy as np
+from collections import defaultdict
 
 # name of .db file to use
-name = "validation" 
+name = "UserItemTables"
 local_dir = os.path.dirname(__file__)
-db_path = os.path.join(local_dir,  name + '.db')
+db_path = os.path.join(local_dir,  "..", "Data", "Databases", name + '.db')
 connection = sqlite3.connect(db_path)
 cur = connection.cursor()
 
 # path to the validation file
-csv_path = "Data/smallValidation.csv" 
+csv_path = os.path.join(local_dir, "..", "Data", "CSV", "smallValidation.csv")
+# for row in cur.execute("SELECT name FROM sqlite_master WHERE type = 'table';"):
+#     print(row[0])
 
 # all test ratings to loop through
 with open(csv_path) as csv_file:
@@ -41,6 +44,12 @@ round_abs_errors = []
 ceil_abs_errors = []
 floor_abs_errors = []
 
+# dictionary mapping item to the users that rated it
+item_dict = defaultdict(list)
+for row in cur.execute(f"SELECT userID, itemID FROM User_table"):
+    item_dict.setdefault(row[1], []).append(row[0])
+print("> Built item_dict")
+
 # for each entry in sample_list
 for line in tqdm(sample_list):
     user = int(line[0])
@@ -48,14 +57,14 @@ for line in tqdm(sample_list):
     rating = float(line[2])
 
     # make the predictions for that user
-    predictions = MakePredictionV2.get_prediction(user, item_list, "User_table", "Item_table", cur) # make prediction for that entry)
+    predictions = MakePredictionV2.get_prediction(user, item_list, "User_table", item_dict, cur)  # make prediction for that entry
 
     # check predictions list is not empty
-    if predictions is not None: 
+    if predictions is not None:
         # extract the single prediciton
         pred = predictions[0]
         # check the acctaul prediction is not None
-        if pred is not None: 
+        if pred is not None:
             # calculate the different roundings
             round_05 = round(pred * 2) / 2
             ceil_05 = ceil(pred * 2) / 2

@@ -140,4 +140,11 @@ Questions:
     only use timestamp for prediction calculation not similarity - just try different approaches not a referenced approach
     use smart indexing for faster sql queries
     not all items/users are in the test set
+
+-- Additional speed up (24/04/20)
+Looking into having a seperate sim scores matrix so that the scores don't have have to be calculated during predicitons
+This should speed up the procces by a lot.
+Also, the database query looking for what users rated each user takes a decent amount of time so before any predicitons
+are made a dictionary of item to user list can be made and passed to the prediction method, again increasing the speed.
+
     
