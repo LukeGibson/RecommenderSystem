@@ -7,7 +7,7 @@ import csv
 import time
 import os
 
-database_name = "validation"
+database_name = "src\\validation"
 table_name = "ratings"
 # csv_name = "example-train"
 # csv_name = "comp3208-train-small"

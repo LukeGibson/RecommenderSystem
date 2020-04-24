@@ -5,6 +5,7 @@ import os
 from collections import OrderedDict
 from tqdm import tqdm
 import numpy as np
+
 local_dir = os.path.dirname(__file__)
 size = "small"
 csv_path = os.path.join(local_dir, '../Data/comp3208-train-' + size + '.csv')

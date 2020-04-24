@@ -13,3 +13,131 @@ Method 2:
     - Select neighbourhood as the N users with the highest similarity score
     - For each item not rated by currentUser calculate its predicted rating using the pred(currentUser, item) function
     - Return the M items with the highest predicted rating as the recommendations
+
+
+NOTES:
+
+    - Finding a users ratings for a list of shared items
+        Before: 39sec
+
+        for i in range(len(shared_items)):
+            criteria = (user_id, shared_items[i],)
+            for row in cursor.execute('SELECT rating FROM ratings WHERE userID = ? AND itemID = ?', criteria):
+                u1_ratings.append(row[0])
+
+        After: 1sec
+
+        for row in cursor.execute(f"SELECT rating FROM ratings WHERE userID = ? AND itemID IN ({','.join(map(str, shared_items))}) ", criteria):
+            u1_ratings.append(row[0])
+    
+    - In sim changed so that it takes user_subset instead of indevidual user
+        This means it can calculate the u1 infomation a single time intead of re-calculating it for each user call
+        Also as u1 ratings are previously calculated in get_prediction it is passed to the sim function as a parameter so that all the u1 user_ratings can stored in memory
+        For each user sim score calculation now only 2 database calls are made:
+            - The u2 shared item ratings
+            - The u2 average
+    
+    - Changed get shared u2 shared ratings call
+        Now stores all the items rated by u2 in a dict
+        This also allows us to calculate the average rating for u2 without another database call
+        The u1 and u2 rating dicts are now compeared in memory without any indevidual database calls per shared item
+    
+    - Applied same porcess to pred
+        Storing all ratings of u2 from a single pass of the database, stored in a dictionary so we can compeare with u1 ratings to find shared ratings
+        The u2 average can then be calculated by iterating through this list instead of the whole database
+
+    - Currently: sim per u2 in user subset takes ~ 1sec AND pred per u2 in neighbourhood ~ 1.5sec
+
+    - Each time a query is made to the database all rows are inspected from 1 to db.size this is ~ 10million rows to inspect
+        We can exploit the fact that all user ratings in cvs are in userId accending order (all user1 ratings appear before user2 ratings etc.)
+        Therefore we can binary search the rows of our database to find the user we want the ratings for
+        In Sqlite this requires a PRIMARY KEY - for this we use a composite of userId and itemId
+        This will increase our database calls from a time complexity of O(n) to O(log2(n))
+        As n in the case of the small database is 10 million this makes a very large time difference
+    
+    - Currently: sim per u2 in user subset takes ~ 0.0036 sec AND pred per u2 in neighbourhood ~ 0.0033 sec
+
+    - Build indevidual tables for each user containing all the users ratings, using itemID as PRIMARY KEY
+        This will take longer to build the database as it will run more create table querys
+        The advantage of doing this means we can query for all a users ratings much quicker by only searching entries the users own table instead of searching through all user entries.
+        * PROBLEM - This required to much memory when building the database tables as ~ 280'000 tables would be required
+        * Instead have created sub groups of users where a table contains upto some threshold ~ 5000 users ~ 50 tables
+        * Also requires a full database when counting number of shared ratings
+    
+    - Taking into account time of u2 rating in pred function:
+        Using a piecewise-linear activation function
+
+-------------------------------- Easter Break --------------------------------
+
+    - Changed storing users info in a pandas dataframe
+        First DB call = 0.007979
+        Seconds DB call = 5.2785
+        Third DB call = 0.140047
+    
+    - Time incorperation (TestCalc.py)
+        - piecewise-linear approach
+        - computationally very fast (additional accuracy of a curved function wont be much better but would be slower)
+        - calculate age of rating using current time
+        - age then used to return a weight from 0-1 using a piecewise-linear 
+        - weight is then used in the pred equation to weight the simScore for that neighbour 
+
+    - Problem: if user has only rated a few items (3) the threshold of required shared number of ratings is also low (3)
+        * this results in a huge number of users being inspected for their similarity
+        * as loads of users will have rated all 3 of these items
+        * eg) user2 the user_subset is 7256, while user1 whos rated 30+ items is only 14
+        * SOLUTION = take the n users who have rated the most common items
+    
+    - As prediction returns a float but the true values are either .0 or .5 investigate weather rounding, flooring or ceiling is the best option
+
+    - tqdm libary used to monitor progress of long build loops
+
+    - validation database made to test MSE
+    
+    - Problem: very large MSE as pred() was rating scores way otuside boundries of 0-5
+        * This is due to possibility that similarity scores of neighbourhood can be negitive
+        * When the sum of the simScores (the denominator of the pred equation) is a very small possitive/negitive number then dividing by this produces a hugely possitive / negitive number outside of the rating boundries
+        * Solution don't take into account negitive sim scores - means the sum will not be close to 0
+    
+    - attempts to reduce MSE (not got below an MSE of 1.1)
+        * Clamp predictions between 0 and 5
+        * removing all users with negitive sim scores
+        * clamp sim scores between 0 to 1
+        * clamp sim scores between -1 to 1
+    
+    - Line chart of abs error made in validation ratings
+        shows that less than half of predicitons have an error greater than 0.5
+        meaning a few bad predictions are pulling down the MSE
+        shows when ploting abs error **2  and the huge spike in only the worst few predictions
+    
+    
+
+
+Problems:
+
+    User Cold Start = when a user joins the system they have made no ratings and therefore can't find similar users to generate predicted rating for
+        Look at number of users in the database that have no or small number of ratings - If large will be a problem
+        Have a hybrid approach that if user has few ratings uses a different approach from collaberative filtering...
+            can't use content as no infomation is known about the items
+    
+    Missing Values = if a user in the test set doesn't exist in the train set, how should this exception be handelled
+
+    Test different similarity measures - test results on validation set and include in report
+        Measures such as: pearson, cosine, mean square difference
+        For each tune parameters such as neighbourhood size
+        Cacluating accuracy metrics for each approach
+
+
+
+Literature:
+    https://www.researchgate.net/publication/337051634_Recent_Developments_in_Recommender_Systems
+    https://core.ac.uk/download/pdf/22877074.pdf
+    https://towardsdatascience.com/4-ways-to-supercharge-your-recommendation-system-aeac34678ce9
+
+
+
+Questions:
+    4 hours for full prediction 
+    only use timestamp for prediction calculation not similarity - just try different approaches not a referenced approach
+    use smart indexing for faster sql queries
+    not all items/users are in the test set
+    
