@@ -147,4 +147,10 @@ This should speed up the procces by a lot.
 Also, the database query looking for what users rated each user takes a decent amount of time so before any predicitons
 are made a dictionary of item to user list can be made and passed to the prediction method, again increasing the speed.
 
+Speed calcuations:
+Aim to build sim score matrix in 3-5 hours
+To be done in 3 hours you have max of 0.04134s per user
+# ( 60   ×   60   ×   3 )   ÷   261232 =‬
+5 hours you have 0.06890s per user - this is doable apart from getting all the users the similar items
+
     
