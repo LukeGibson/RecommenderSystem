@@ -88,7 +88,7 @@ def pred(df, u1, item_id, neighbours):
 
 
 # returns a list of predicitons of user_id on the items in the item_list such that order is maintained
-def get_prediction(user_id, item_list, user_table_nm, item_table_nm, cursor):
+def get_prediction(user_id, item_list, user_table_nm, item_list_dict, cursor):
     # s = time()
 
     # given a userId create a dataframe of all their ratings
@@ -107,22 +107,18 @@ def get_prediction(user_id, item_list, user_table_nm, item_table_nm, cursor):
 
 
     # list of all items u1 rated
-    items_rated = [y for x, y in df.index] 
+    items_rated = [y for x, y in df.index]
+    user_item_count = {}
     # dictionary: counts each user to how many times they've rated an item that u1 rated
-    user_item_count = {} 
-    # string format of items rated (joined on commas)
-    items_to_search = ','.join(map(str, items_rated)) 
-
-    # go through item table get the user where itemId is one of the items_to_search - increment the users count for each item
-    for row in cursor.execute(f"SELECT userID FROM {item_table_nm} WHERE itemID IN ({items_to_search})"):
-        user_item_count[row[0]] = user_item_count.get(row[0], 0) + 1
-
+    for item in items_rated:
+        for user in item_list_dict[item]:
+            user_item_count[user] = user_item_count.get(user, 0) + 1
 
     # number of top users to select
     user_subset = []
     max_user_size = 40 
 
-    # order dirctory and select the top users
+    # order dictionary and select the top users
     for k, v in sorted(user_item_count.items(), key=lambda item: item[1], reverse=True):
         if len(user_subset) < max_user_size and not k == user_id:
             user_subset.append(k)
