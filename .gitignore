@@ -1,5 +1,5 @@
 Data
 .vscode
-ratings.db
 notebook.ipynb
 .idea
+*.db
