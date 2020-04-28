@@ -5,16 +5,16 @@
 
 import pandas as pd
 import numpy as np
-from math import sqrt, pow
-from statistics import mean
 import sqlite3
 import os
-import numpy as np
 from tqdm import tqdm
+from math import sqrt, pow
+from time import process_time as time
 
 
 # trying to make this file as independant as possible so only need the db name and table name
 def build_sim_matrix(db_name, table_name):
+    start_time = time()
     # connect to db
     local_dir = os.path.dirname(__file__)
     db_path = os.path.join(local_dir, "..", "..", "Data", "Databases", db_name + ".db")
@@ -31,10 +31,10 @@ def build_sim_matrix(db_name, table_name):
     sim_matrix = np.empty(matrix_shape)
     print(f"> Matrix of dimensions {sim_matrix.shape} made")
 
-    item_avgs = {}
-    for row in cur.execute(f"SELECT ItemID, AVG(rating) FROM {table_name} GROUP BY ItemID"):
-        item_avgs[row[0]] = row[1]
-    print("> Calculated item averages")
+    user_avgs = {}
+    for row in cur.execute(f"SELECT UserID, AVG(rating) FROM {table_name} GROUP BY UserID"):
+        user_avgs[row[0]] = row[1]
+    print("> Calculated user averages")
 
     all_item_data = {}
     for i in tqdm(range(num_items)):
@@ -47,19 +47,21 @@ def build_sim_matrix(db_name, table_name):
 
     for i in tqdm(range(num_items)):
         item_1 = items[i]
-        item_1_avg = item_avgs[item_1]
         # (UserID, Rating) pairs
         item_1_data = all_item_data[item_1]
 
         for j in range(i + 1, num_items):
             item_2 = items[j]
-            item_2_avg = item_avgs[item_2]
             item_2_data = all_item_data[item_2]
             if item_2 <= item_1:
                 print(f"Error with calculating sim score for: {item_1} and {item_2}")
             # print(f"Calc for items {item_1} and {item_2}")
 
-            sim_matrix[i][j] = calc_sim(item_1_data, item_2_data, item_1_avg, item_2_avg)
+            sim_matrix[i][j] = calc_sim(item_1_data, item_2_data, user_avgs)
+
+    np.save('SimMat_100', sim_matrix)
+
+    print(f"Matrix made, time taken: {time() - start_time}")
 
     return sim_matrix
     #
@@ -88,36 +90,39 @@ def build_sim_matrix(db_name, table_name):
     # return sim_matrix
 
 
-def calc_sim(item_1_data, item_2_data, item_1_avg, item_2_avg):
-    item_1_users = [u for u, r in item_1_data]
+def calc_sim(item_1_data, item_2_data, user_avgs):
+    # triple of (user, rating for item 1, rating for item 2)
+    threshold = 100
+    user_ratings = []
     item_2_users = [u for u, r in item_2_data]
-    item_1_ratings = [r for u, r in item_1_data]
-    item_2_ratings = [r for u, r in item_2_data]
-
-    # find the users that rated both items and the rating they gave
-    users_shared = [u for u in item_1_users if u in item_2_users]
+    for u1, r1 in item_1_data:
+        if len(user_ratings) >= threshold:
+            break
+        if u1 in item_2_users:
+            r2 = item_2_data[item_2_users.index(u1)][1]
+            user_ratings.append((u1, r1, r2))
 
     # if no users have rated both items set similarity to 0
-    if len(users_shared) == 0:
-        sim = 0
-    else:
-        # perform pearson coefficent calculation
-        a, b, c = 0, 0, 0
+    if len(user_ratings) == 0:
+        return 0
+    # perform pearson coefficent calculation
+    a, b, c = 0, 0, 0
 
-        for user in users_shared:
-            # calculate the items adjusted rating from user
-            item_1_rating_adjust = item_1_ratings[item_1_users.index(user)] - item_1_avg
-            item_2_rating_adjust = item_2_ratings[item_2_users.index(user)] - item_2_avg
-            
-            # accumulate the seperate sums of the person coefficent
-            a += (item_1_rating_adjust * item_2_rating_adjust)
-            b += pow(item_1_rating_adjust, 2)
-            c += pow(item_2_rating_adjust, 2)
+    for user in user_ratings:
+        user_avg_rating = user_avgs[user[0]]
+        # calculate the items adjusted rating from user
+        item_1_rating_adjust = user[1] - user_avg_rating
+        item_2_rating_adjust = user[2] - user_avg_rating
 
-        # finish the operations outside of the equation sums
-        b = sqrt(b)
-        c = sqrt(c)
+        # accumulate the seperate sums of the person coefficent
+        a += (item_1_rating_adjust * item_2_rating_adjust)
+        b += pow(item_1_rating_adjust, 2)
+        c += pow(item_2_rating_adjust, 2)
 
-        sim = 0 if b == 0 or c == 0 else (a/(b*c))
+    # finish the operations outside of the equation sums
+    b = sqrt(b)
+    c = sqrt(c)
+
+    sim = 0 if b == 0 or c == 0 else (a/(b*c))
 
     return sim

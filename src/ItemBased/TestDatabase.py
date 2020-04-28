@@ -35,13 +35,22 @@ cur = connection.cursor()
 # (206085, 3.0)
 # (229595, 3.0)
 
-count = []
-for row in cur.execute(f"SELECT ItemID, COUNT(UserID) FROM {table_name} GROUP BY ItemID"):
-    count.append((row[0], row[1]))
-count.sort(key=lambda tup: tup[1], reverse=True)
-total = 0
-for c in count:
-    if c[1] > 10000:
-        total += 1
-    print(c)
-print(total)
+# count = []
+# for row in cur.execute(f"SELECT ItemID, COUNT(UserID) FROM {table_name} GROUP BY ItemID"):
+#     count.append((row[0], row[1]))
+# count.sort(key=lambda tup: tup[1], reverse=True)
+# total = 0
+# for c in count:
+#     if c[1] > 10000:
+#         total += 1
+#     print(c)
+# print(total)
+
+# user_avgs = {}
+# for row in cur.execute(f"SELECT UserID, AVG(rating) FROM {table_name} GROUP BY UserID"):
+#     user_avgs[row[0]] = row[1]
+# print("> Calculated user averages")
+# print(user_avgs[2])
+# for row in cur.execute(f"SELECT UserID, rating FROM {table_name} WHERE UserID = 2"):
+#     print(row)
+
