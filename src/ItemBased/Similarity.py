@@ -8,7 +8,7 @@ import numpy as np
 from math import sqrt, pow
 from statistics import mean
 
-
+# PREASONS EDIT: also take avg_user_ratings dict
 def get_sim_matrix(item_ratings_df):
     # get the number of items in the dataframe
     num_items = len(item_ratings_df.index)
@@ -28,6 +28,7 @@ def get_sim_matrix(item_ratings_df):
             if item_id_1 == item_id_2:
                 item_sim = 1
             else:
+                # PREASONS EDIT: pass avg_user_ratings dict
                 item_sim = calc_sim(row_1, row_2)
 
             sim_matrix[item_id_1 - 1][item_id_2 - 1] = item_sim
@@ -35,17 +36,13 @@ def get_sim_matrix(item_ratings_df):
     return sim_matrix
 
 
-
+# PREASONS EDIT: also take avg_user_ratings dict
 # takes the dataframe rows of 2 items
 def calc_sim(row_1, row_2):
     item_1_users = row_1['Users']
     item_2_users = row_2['Users']
     item_1_ratings = row_1['Ratings']
     item_2_ratings = row_2['Ratings']
-
-    # calculate average ratings for both items
-    item_1_rating_avg = mean(item_1_ratings)
-    item_2_rating_avg = mean(item_2_ratings)
 
     # find the users that rated both items and the rating they gave
     users_shared = [u for u in item_1_users if u in item_2_users] 
@@ -58,9 +55,12 @@ def calc_sim(row_1, row_2):
         a, b, c = 0, 0, 0
 
         for user in users_shared:
+            # PREASONS EDIT: find users average rating from dict
+            avg_user_rating = 0
+
             # calculate the items adjusted rating from user
-            item_1_rating_adjust = item_1_ratings[item_1_users.index(user)] - item_1_rating_avg
-            item_2_rating_adjust = item_2_ratings[item_2_users.index(user)] - item_2_rating_avg
+            item_1_rating_adjust = item_1_ratings[item_1_users.index(user)] - avg_user_rating
+            item_2_rating_adjust = item_2_ratings[item_2_users.index(user)] - avg_user_rating
             
             # accumulate the seperate sums of the person coefficent
             a += (item_1_rating_adjust * item_2_rating_adjust)
