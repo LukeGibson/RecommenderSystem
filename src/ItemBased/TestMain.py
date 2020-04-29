@@ -8,8 +8,11 @@
 import pandas as pd
 import numpy as np
 
-import Similarity as sim
-import Prediction as prd
+from src.ItemBased import Similarity as sim
+from src.ItemBased import Prediction as prd
+
+# from import Similarity as sim
+# import Prediction as prd
 
 
 # test data - as it would be in the database
@@ -42,7 +45,7 @@ ratings_to_predict = [
 
 print("\n", "------ Predictions ------", "\n")
 
-# Calculates the predicitons
+# Calculates the predictions
 for entry in ratings_to_predict:
     user = int(entry[0])
     item = int(entry[1])
@@ -51,5 +54,23 @@ for entry in ratings_to_predict:
     prediction = prd.get_prediction(user, item, item_ratings_df, sim_matrix)
     
     print(user, item, prediction)
+
+#  ------ Input Dataframe ------
+#
+#    Item      Users    Ratings      Times
+# 0     1  [1, 2, 3]  [2, 5, 1]  [0, 0, 0]
+# 1     2  [1, 2, 3]  [4, 1, 5]  [0, 0, 0]
+# 2     3     [2, 3]     [5, 1]     [0, 0]
+#
+#  ------ Item Similarity Matrix ------
+#
+# [[ 1.         -1.          0.98639392]
+#  [-1.          1.         -0.98639392]
+#  [ 0.98639392 -0.98639392  1.        ]]
+#
+#  ------ Predictions ------
+#
+# 1 1 2
+# 1 3 2.0
 
 
