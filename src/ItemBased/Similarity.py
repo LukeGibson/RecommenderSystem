@@ -95,6 +95,7 @@ def calc_sim(item_1_data, item_2_data, user_avgs):
     threshold = 100
     user_ratings = []
     item_2_users = [u for u, r in item_2_data]
+    
     for u1, r1 in item_1_data:
         if len(user_ratings) >= threshold:
             break

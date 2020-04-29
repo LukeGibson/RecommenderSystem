@@ -41,9 +41,10 @@ cur = connection.cursor()
 # count.sort(key=lambda tup: tup[1], reverse=True)
 # total = 0
 # for c in count:
-#     if c[1] > 10000:
+#     if c[1] >= 70000:
+#         # total += 3 * c[1]
 #         total += 1
-#     print(c)
+#         print(c)
 # print(total)
 
 # user_avgs = {}

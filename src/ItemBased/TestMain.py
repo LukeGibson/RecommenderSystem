@@ -8,8 +8,8 @@
 import pandas as pd
 import numpy as np
 
-from src.ItemBased import Similarity as sim
-from src.ItemBased import Prediction as prd
+import Similarity as sim
+import Prediction as prd
 
 # from import Similarity as sim
 # import Prediction as prd
