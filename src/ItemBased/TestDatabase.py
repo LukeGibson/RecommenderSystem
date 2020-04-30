@@ -5,14 +5,14 @@ import os
 
 
 local_dir = os.path.dirname(__file__)
-db_name = "ItemBased"
+db_name = "small"
 table_name = "Ratings"
 db_path = os.path.join(local_dir, "..", "..", "Data", "Databases", db_name + ".db")
 connection = sqlite3.connect(db_path)
 cur = connection.cursor()
 
-for row in cur.execute(f"SELECT COUNT(DISTINCT ItemID) FROM {table_name}"):
-    print(row)
+# for row in cur.execute(f"SELECT COUNT(DISTINCT ItemID) FROM {table_name}"):
+#     print(row)
 
 # items = []
 # for row in cur.execute(f"SELECT DISTINCT(ItemID) FROM {table_name}"):
