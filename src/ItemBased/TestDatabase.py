@@ -11,8 +11,8 @@ db_path = os.path.join(local_dir, "..", "..", "Data", "Databases", db_name + ".d
 connection = sqlite3.connect(db_path)
 cur = connection.cursor()
 
-# for row in cur.execute(f"SELECT COUNT(DISTINCT ItemID) FROM {table_name}"):
-#     print(row)
+for row in cur.execute(f"SELECT COUNT(DISTINCT ItemID) FROM {table_name}"):
+    print(row)
 
 # items = []
 # for row in cur.execute(f"SELECT DISTINCT(ItemID) FROM {table_name}"):
