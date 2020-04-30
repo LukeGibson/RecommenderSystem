@@ -14,7 +14,7 @@ import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from time import process_time as time
-
+from datetime import datetime
 import Prediction as prd
 
 
@@ -24,13 +24,13 @@ table_name = "Ratings"
 test_csv_name = "comp3208-test-small"
 
 
-# Create item data dictionary
 start_time = time()
 
 local_dir = os.path.dirname(__file__)
 db_path = os.path.join(local_dir, "..", "..", "Data", "Databases", db_name + ".db")
 connection = sqlite3.connect(db_path)
 cur = connection.cursor()
+print("> Connected to database")
 
 items = []
 for row in cur.execute(f"SELECT DISTINCT(ItemID) FROM {table_name}"):
@@ -50,38 +50,37 @@ print("> Built item data dictionary of size:", len(all_item_data))
 # Load similarity matrix
 sim_matrix_path = os.path.join(local_dir, "..", "..", "Data", "Output", "sim-matrix-" + db_name + ".npy")
 sim_matrix = np.load(sim_matrix_path)
-
 print("> Loaded similarity matrix of size:", sim_matrix.shape)
-
+#
 
 # Get list of (user, item, time) predictions to make
 test_csv_path = os.path.join(local_dir, "..", "..", "Data", "CSV", test_csv_name + ".csv")
-
 with open(test_csv_path) as csv_file:
     lines = csv.DictReader(csv_file, fieldnames=['userID', 'itemID', 'time'])
-    ratings_to_predict = [(i['userID'], i['itemID'], i['time']) for i in lines]
+    data_entries = [(i['userID'], i['itemID'], i['time']) for i in lines]
+print("> Read CSV file")
 
+# dict item: -> (user: -> time)
+input_dict = {}
+for line in data_entries:
+    user = int(line[0])
+    item = int(line[1])
+    time = int(line[2])
+    if item in input_dict:
+        input_dict[item][user] = time
+    else:
+        input_dict[item] = {user: time}
 
 # dict: item - dict: user - time
 
 
 # Generate predictions
-predictions = []
+predictions = {}
 
-for entry in (ratings_to_predict):
-    user = int(entry[0])
-    item = int(entry[1])
-    time = int(entry[2])
-
-    prediction = prd.get_prediction(user, item, items, all_item_data, sim_matrix)
-    # print("user", user, "item", item, ": rating", prediction)
-    predictions.append((user, item, prediction))
-
-
-# Write predictions csv file
-predictions_path = os.path.join(local_dir, "..", "..", "Data", "Output", "predictions-" + db_name + ".csv")
+date = datetime.now().strftime("%d%m%Y-%H%M%S")
+predictions_path = os.path.join(local_dir, "..", "..", "Data", "Output", "predictions-" + db_name + date + ".csv")
 
 with open(predictions_path,'w', newline='') as results:
     csv_results = csv.writer(results)
-    for entry in predictions:
+    for entry in output:
         csv_results.writerow(entry)
