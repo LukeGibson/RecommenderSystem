@@ -51,7 +51,7 @@ print("> Built item data dictionary of size:", len(all_item_data))
 sim_matrix_path = os.path.join(local_dir, "..", "..", "Data", "Output", "sim-matrix-" + db_name + ".npy")
 sim_matrix = np.load(sim_matrix_path)
 print("> Loaded similarity matrix of size:", sim_matrix.shape)
-#
+
 
 # Get list of (user, item, time) predictions to make
 test_csv_path = os.path.join(local_dir, "..", "..", "Data", "CSV", test_csv_name + ".csv")
@@ -59,6 +59,7 @@ with open(test_csv_path) as csv_file:
     lines = csv.DictReader(csv_file, fieldnames=['userID', 'itemID', 'time'])
     data_entries = [(i['userID'], i['itemID'], i['time']) for i in lines]
 print("> Read CSV file")
+
 
 # dict item: -> (user: -> time)
 input_dict = {}

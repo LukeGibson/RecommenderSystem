@@ -17,8 +17,6 @@ def get_prediction(item_1, data, item_list, all_item_data, sim_matrix):
     # dictionary of user -> rating
     output = {}
 
-
-
     # check item exists 
     if item_1 in item_list:                                             # n
         # extract item data and index
