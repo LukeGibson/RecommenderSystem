@@ -22,7 +22,6 @@ import Prediction as prd
 db_name = "small"
 table_name = "Ratings"
 test_csv_name = "comp3208-test-small"
-local_dir = os.path.dirname(__file__)
 
 
 # Create item data dictionary
@@ -63,17 +62,20 @@ with open(test_csv_path) as csv_file:
     ratings_to_predict = [(i['userID'], i['itemID'], i['time']) for i in lines]
 
 
+# dict: item - dict: user - time
+
+
 # Generate predictions
 predictions = []
 
-for entry in tqdm(ratings_to_predict):
+for entry in (ratings_to_predict):
     user = int(entry[0])
     item = int(entry[1])
     time = int(entry[2])
 
     prediction = prd.get_prediction(user, item, items, all_item_data, sim_matrix)
     # print("user", user, "item", item, ": rating", prediction)
-    predictions.append((user, item, prediction, time))
+    predictions.append((user, item, prediction))
 
 
 # Write predictions csv file

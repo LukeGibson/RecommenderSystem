@@ -49,12 +49,5 @@ def get_prediction(user, item_1, items, all_item_data, sim_matrix):
     else:
         prediction = 2.5
     
-    # print("Prediction time:", time() - start_time)
+    print("Prediction time:", time() - start_time)
     return prediction
-                
-            
-
-
-
-
-
