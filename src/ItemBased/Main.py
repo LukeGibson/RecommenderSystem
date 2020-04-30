@@ -15,15 +15,18 @@ import numpy as np
 from tqdm import tqdm
 from time import process_time as time
 from datetime import datetime
-import Prediction as prd
+from src.ItemBased import Prediction as prd
 
 
 # Name cvs file for predictions to make
 db_name = "small"
 table_name = "Ratings"
 test_csv_name = "comp3208-test-small"
+#test_csv_name = "test_prediction"
+local_dir = os.path.dirname(__file__)
 
 
+# Create item data dictionary
 start_time = time()
 
 local_dir = os.path.dirname(__file__)
@@ -51,7 +54,7 @@ print("> Built item data dictionary of size:", len(all_item_data))
 sim_matrix_path = os.path.join(local_dir, "..", "..", "Data", "Output", "sim-matrix-" + db_name + ".npy")
 sim_matrix = np.load(sim_matrix_path)
 print("> Loaded similarity matrix of size:", sim_matrix.shape)
-
+#
 
 # Get list of (user, item, time) predictions to make
 test_csv_path = os.path.join(local_dir, "..", "..", "Data", "CSV", test_csv_name + ".csv")
@@ -59,7 +62,6 @@ with open(test_csv_path) as csv_file:
     lines = csv.DictReader(csv_file, fieldnames=['userID', 'itemID', 'time'])
     data_entries = [(i['userID'], i['itemID'], i['time']) for i in lines]
 print("> Read CSV file")
-
 
 # dict item: -> (user: -> time)
 input_dict = {}
@@ -72,12 +74,19 @@ for line in data_entries:
     else:
         input_dict[item] = {user: time}
 
-# dict: item - dict: user - time
-
-
 # Generate predictions
 predictions = {}
 
+for item, data in tqdm(input_dict.items()):
+    predictions[item] = prd.get_prediction(item, data, items, all_item_data, sim_matrix)
+
+output = []
+for item, data in predictions.items():
+    for user, rating in data.items():
+        output.append((user, item, rating))
+
+
+# Write predictions csv file
 date = datetime.now().strftime("%d%m%Y-%H%M%S")
 predictions_path = os.path.join(local_dir, "..", "..", "Data", "Output", "predictions-" + db_name + date + ".csv")
 
