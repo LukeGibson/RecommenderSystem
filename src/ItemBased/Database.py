@@ -13,7 +13,7 @@ local_dir = os.path.dirname(__file__)
 csv_path = os.path.join(local_dir, "..", "..", "Data", "CSV", csv_name + ".csv")
 
 start_time = time()
-db_name = "ItemBased"
+db_name = "small"
 table_name = "Ratings"
 db_path = os.path.join(local_dir, "..", "..", "Data", "Databases", db_name + ".db")
 connection = sqlite3.connect(db_path)

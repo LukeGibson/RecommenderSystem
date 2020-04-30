@@ -1,2 +1,2 @@
-from src.ItemBased import Similarity
-mat = Similarity.build_sim_matrix("ItemBased", "Ratings")
+import Similarity as sim
+mat = sim.build_sim_matrix("small", "Ratings")
