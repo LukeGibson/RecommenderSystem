@@ -27,7 +27,7 @@ def build_sim_matrix(db_name, table_name):
     print("> Item list made")
 
     matrix_shape = (num_items, num_items)
-    sim_matrix = np.empty(matrix_shape)
+    sim_matrix = np.zeros(matrix_shape, dtype=np.float32)
     print(f"> Matrix of dimensions {sim_matrix.shape} made")
 
     user_avgs = {}
@@ -59,6 +59,7 @@ def build_sim_matrix(db_name, table_name):
 
             sim_matrix[i][j] = calc_sim(item_1_data, item_2_data, user_avgs)
 
+    print(sim_matrix)
     np.save('SimMat', sim_matrix)
 
     print(f"Matrix made, time taken: {time() - start_time}")
