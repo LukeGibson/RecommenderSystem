@@ -15,13 +15,13 @@ import numpy as np
 from tqdm import tqdm
 from time import process_time as time
 from datetime import datetime
-from src.ItemBased import Prediction as prd
+import Prediction as prd
 
 
 # Name cvs file for predictions to make
-db_name = "small"
+db_name = "example"
 table_name = "Ratings"
-test_csv_name = "comp3208-test-small"
+test_csv_name = "example-test"
 #test_csv_name = "test_prediction"
 local_dir = os.path.dirname(__file__)
 

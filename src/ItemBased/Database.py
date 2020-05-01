@@ -7,13 +7,13 @@ import csv
 from time import process_time as time
 import os
 
-csv_name = "smallTrain"
+csv_name = "comp3208-train"
 # csv_name = "comp3208-train-small"
 local_dir = os.path.dirname(__file__)
 csv_path = os.path.join(local_dir, "..", "..", "Data", "CSV", csv_name + ".csv")
 
 start_time = time()
-db_name = "validation"
+db_name = "large"
 table_name = "Ratings"
 db_path = os.path.join(local_dir, "..", "..", "Data", "Databases", db_name + ".db")
 connection = sqlite3.connect(db_path)
