@@ -25,6 +25,11 @@ cur = connection.cursor()
 #
 # print(item_avgs[1])
 
+user_avgs = {}
+for row in cur.execute(f"SELECT UserID, AVG(rating)  FROM {table_name} GROUP BY UserID"):
+    user_avgs[row[0]] = row[1]
+print(user_avgs[2])
+
 # for row in cur.execute(f"SELECT UserID, Rating FROM {table_name} WHERE ItemID = 3"):
 #     print(row)
 # (98801, 3.0)

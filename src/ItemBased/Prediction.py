@@ -8,8 +8,10 @@ import numpy as np
 from time import process_time as time
 from tqdm import tqdm
 
-
-def get_prediction(item_1, data, item_list, all_item_data, sim_matrix):
+# complexity: 2n + m + nm 
+# n: num of items (19807)
+# m: num of ratings for item (0-90000)
+def get_prediction(item_1, data, item_list, all_item_data, sim_matrix, user_avg_ratings):
     start_time = time()
 
     # dictionary of user -> rating
@@ -36,23 +38,18 @@ def get_prediction(item_1, data, item_list, all_item_data, sim_matrix):
                 # accumulators for the equation
                 a, b = 0, 0
 
-                for score, item_2 in scores:
-                    # extract item 2 data                     
-                    item_2_data = all_item_data[item_2]
-
                     # check user has rated item_2
                     if user in item_2_data.keys():
-                        item_2_user_rating = item_2_data[user]
 
                         a += score * item_2_user_rating
                         b += score
 
-
                 # finish the operations outside of the equation sums
                 output[user] = 0 if b == 0 else (a/b)
-                #print(f"Time: {time() - s}")
+                # print(f"Time: {time() - s}")
     else:
-        output = dict.fromkeys(data, 2.5)
+        for user, _ in data.keys():
+            output[user] = user_avg_ratings[user]
     
     # print("Prediction time:", time() - start_time)
     return output
