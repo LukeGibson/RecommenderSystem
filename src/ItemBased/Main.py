@@ -15,6 +15,7 @@ import numpy as np
 from tqdm import tqdm
 from time import process_time as time
 from datetime import datetime
+
 import Prediction as prd
 
 
@@ -22,7 +23,6 @@ import Prediction as prd
 db_name = "small"
 table_name = "Ratings"
 test_csv_name = "comp3208-test-small"
-#test_csv_name = "test_prediction"
 
 
 # Create item data dictionary
@@ -53,11 +53,12 @@ for row in cur.execute(f"SELECT UserID, AVG(rating)  FROM {table_name} GROUP BY 
     user_avgs[row[0]] = row[1]
 print("> Build User Averages dictionary")
 
+
 # Load similarity matrix
 sim_matrix_path = os.path.join(local_dir, "..", "..", "Data", "Output", "sim-matrix-" + db_name + ".npy")
 sim_matrix = np.load(sim_matrix_path)
 print("> Loaded similarity matrix of size:", sim_matrix.shape)
-#
+
 
 # Get list of (user, item, time) predictions to make
 test_csv_path = os.path.join(local_dir, "..", "..", "Data", "CSV", test_csv_name + ".csv")
@@ -76,6 +77,7 @@ for line in data_entries:
         input_dict[item][user] = time
     else:
         input_dict[item] = {user: time}
+
 
 # Generate predictions
 predictions = {}
