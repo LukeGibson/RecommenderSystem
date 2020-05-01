@@ -21,7 +21,7 @@ import Prediction as prd
 # Name cvs file for predictions to make
 db_name = "small"
 table_name = "Ratings"
-test_csv_name = "comp3208-test"
+test_csv_name = "comp3208-test-small"
 #test_csv_name = "test_prediction"
 local_dir = os.path.dirname(__file__)
 
