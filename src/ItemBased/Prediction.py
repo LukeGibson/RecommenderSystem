@@ -36,7 +36,7 @@ def get_prediction(item_1, data, item_list, all_item_data, sim_matrix):
                 # accumulators for the equation
                 a, b = 0, 0
 
-                for item_2, score in scores:
+                for score, item_2 in scores:
                     # extract item 2 data                     
                     item_2_data = all_item_data[item_2]
 
