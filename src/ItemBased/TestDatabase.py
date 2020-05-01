@@ -11,8 +11,8 @@ db_path = os.path.join(local_dir, "..", "..", "Data", "Databases", db_name + ".d
 connection = sqlite3.connect(db_path)
 cur = connection.cursor()
 
-for row in cur.execute(f"SELECT COUNT(DISTINCT ItemID) FROM {table_name}"):
-    print(row)
+# for row in cur.execute(f"SELECT COUNT(DISTINCT ItemID) FROM {table_name}"):
+#     print(row)
 
 # items = []
 # for row in cur.execute(f"SELECT DISTINCT(ItemID) FROM {table_name}"):
@@ -24,6 +24,11 @@ for row in cur.execute(f"SELECT COUNT(DISTINCT ItemID) FROM {table_name}"):
 #     item_avgs[row[0]] = row[1]
 #
 # print(item_avgs[1])
+
+user_avgs = {}
+for row in cur.execute(f"SELECT UserID, AVG(rating)  FROM {table_name} GROUP BY UserID"):
+    user_avgs[row[0]] = row[1]
+print(user_avgs[2])
 
 # for row in cur.execute(f"SELECT UserID, Rating FROM {table_name} WHERE ItemID = 3"):
 #     print(row)

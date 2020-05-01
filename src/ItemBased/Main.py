@@ -23,7 +23,6 @@ db_name = "small"
 table_name = "Ratings"
 test_csv_name = "comp3208-test-small"
 #test_csv_name = "test_prediction"
-local_dir = os.path.dirname(__file__)
 
 
 # Create item data dictionary
@@ -49,6 +48,10 @@ for i in tqdm(range(num_items)):
     all_item_data[item] = item_data
 print("> Built item data dictionary of size:", len(all_item_data))
 
+user_avgs = {}
+for row in cur.execute(f"SELECT UserID, AVG(rating)  FROM {table_name} GROUP BY UserID"):
+    user_avgs[row[0]] = row[1]
+print("> Build User Averages dictionary")
 
 # Load similarity matrix
 sim_matrix_path = os.path.join(local_dir, "..", "..", "Data", "Output", "sim-matrix-" + db_name + ".npy")
@@ -78,7 +81,7 @@ for line in data_entries:
 predictions = {}
 
 for item, data in tqdm(input_dict.items()):
-    predictions[item] = prd.get_prediction(item, data, items, all_item_data, sim_matrix)
+    predictions[item] = prd.get_prediction(item, data, items, all_item_data, sim_matrix, user_avgs)
 
 output = []
 for item, data in predictions.items():
