@@ -20,14 +20,12 @@ def get_prediction(item_1, data, item_list, all_item_data, sim_matrix):
         # extract item data and index
         item_1_data = all_item_data[item_1]
         item_1_index = item_list.index(item_1)
-        item_sim_scores = sim_matrix[:, item_1_index]
+        item_sim_scores_col = sim_matrix[:item_1_index, item_1_index]
+        item_sim_scores_row = sim_matrix[item_1_index, item_1_index:]
 
-        pos_items = []
-        for i in range(len(item_list)):
-            score = item_sim_scores[i]
-            item = item_list[i]
-            if item_sim_scores[i] > 0 and item != item_1:
-                pos_items.append((item_list[i], score))
+        sim_scores = np.concatenate((item_sim_scores_col, item_sim_scores_row))
+        scores = zip(sim_scores, item_list)
+        scores = [(s, i) for s, i in scores if s > 0]
 
         for user in data.keys():
             # check if user has already rated item
@@ -38,8 +36,8 @@ def get_prediction(item_1, data, item_list, all_item_data, sim_matrix):
                 # accumulators for the equation
                 a, b = 0, 0
 
-                for item_2, score in pos_items:
-                    # extract item 2 data
+                for item_2, score in scores:
+                    # extract item 2 data                     
                     item_2_data = all_item_data[item_2]
 
                     # check user has rated item_2
