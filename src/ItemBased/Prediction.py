@@ -5,12 +5,11 @@
 
 import pandas as pd
 import numpy as np
-from time import process_time as time
+# from time import process_time as time
+import time
 from tqdm import tqdm
 
 def get_prediction(item_1, data, item_list, all_item_data, sim_matrix, user_avg_ratings):
-    start_time = time()
-
     # dictionary of user -> rating
     output = {}
 
@@ -26,22 +25,18 @@ def get_prediction(item_1, data, item_list, all_item_data, sim_matrix, user_avg_
         scores = zip(sim_scores, item_list)
         scores = [(s, i) for s, i in scores if s > 0]
 
-        # sort scores into decending score order
-        scores.sort(reverse = True, key = lambda x: x[0])
-
         # get top n scores
-        top_n = 1000
-        if len(scores) > top_n:
-            scores = scores[:top_n]
-        else:
-            print("Scores Length Only:", len(scores))
+        # scores.sort(reverse = True, key = lambda x: x[0])
+
+        # top_n = 6000
+        # if len(scores) > top_n:
+        #     scores = scores[:top_n]
 
         for user in data.keys():
             # check if user has already rated item
             if user in item_1_data.keys():
                 output[user] = item_1_data[user]
             else:
-                s = time()
                 # accumulators for the equation
                 a, b = 0, 0
 
@@ -70,10 +65,3 @@ def get_prediction(item_1, data, item_list, all_item_data, sim_matrix, user_avg_
             output[user] = rating
     
     return output
-                
-            
-
-
-
-
-

@@ -5,7 +5,7 @@ import os
 
 
 local_dir = os.path.dirname(__file__)
-db_name = "large"
+db_name = "small"
 table_name = "Ratings"
 db_path = os.path.join(local_dir, "..", "..", "Data", "Databases", db_name + ".db")
 connection = sqlite3.connect(db_path)
@@ -25,10 +25,10 @@ cur = connection.cursor()
 #
 # print(item_avgs[1])
 
-user_avgs = {}
-for row in cur.execute(f"SELECT UserID, AVG(rating)  FROM {table_name} GROUP BY UserID"):
-    user_avgs[row[0]] = row[1]
-print(user_avgs[2])
+# user_avgs = {}
+# for row in cur.execute(f"SELECT UserID, AVG(rating)  FROM {table_name} GROUP BY UserID"):
+#     user_avgs[row[0]] = row[1]
+# print(user_avgs[2])
 
 # for row in cur.execute(f"SELECT UserID, Rating FROM {table_name} WHERE ItemID = 3"):
 #     print(row)
