@@ -26,6 +26,16 @@ def get_prediction(item_1, data, item_list, all_item_data, sim_matrix, user_avg_
         scores = zip(sim_scores, item_list)
         scores = [(s, i) for s, i in scores if s > 0]
 
+        # sort scores into decending score order
+        scores.sort(reverse = True, key = lambda x: x[0])
+
+        # get top n scores
+        top_n = 1000
+        if len(scores) > top_n:
+            scores = scores[:top_n]
+        else:
+            print("Scores Length Only:", len(scores))
+
         for user in data.keys():
             # check if user has already rated item
             if user in item_1_data.keys():
@@ -49,8 +59,15 @@ def get_prediction(item_1, data, item_list, all_item_data, sim_matrix, user_avg_
                 # finish the operations outside of the equation sums
                 output[user] = 0 if b == 0 else (a/b)
     else:
-        for user, _ in data.keys():
-            output[user] = user_avg_ratings[user]
+        for user in data.keys():
+            # use the users avaerage rating across other items
+            if user in user_avg_ratings.keys():
+                rating = user_avg_ratings[user]
+            # if they've not rated any items use 2.5
+            else:
+                rating = 2.5
+
+            output[user] = rating
     
     return output
                 
