@@ -10,7 +10,6 @@
 import os
 import sqlite3
 import csv
-import pandas as pd
 import numpy as np
 from tqdm import tqdm
 from time import process_time as time
